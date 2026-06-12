@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V7.2 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V7.3 — Flow &amp; Power</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -259,7 +259,7 @@ input::placeholder{color:#B9B6AA}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V7.2</span>
+      <span class="brand-sub">FLOW &amp; POWER · V7.3</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -577,7 +577,7 @@ async function claudeMM(content){
   const headers={'Content-Type':'application/json'};
   if(S.apiKey){headers['x-api-key']=S.apiKey;headers['anthropic-version']='2023-06-01';headers['anthropic-dangerous-direct-browser-access']='true'}
   const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers,body});
-  if(!res.ok)throw new Error('API '+res.status);
+  if(!res.ok){const e=new Error('API '+res.status);e.status=res.status;throw e}
   const data=await res.json();
   const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
   return JSON.parse(text.replace(/```json|```/g,'').trim())}
@@ -626,7 +626,7 @@ async function requestBriefing(timeMin,box){
     if(!r.coach_note||!r.protocol_type)throw new Error('schema');
     if(r.protocol_type==='LIFT'&&(!r.blocks||!r.blocks.length||r.blocks.some(b=>!b.exercises||b.exercises.length!==3)))throw new Error('blocks');
     S.briefing={date:today(),time:timeMin,r};save();render();
-  }catch(e){box.innerHTML='<div class="vision-result"><div class="vr-flag">COACH UPLINK FAILED. Deployed build: set an API key in VISION. Otherwise retry.</div></div>'}
+  }catch(e){box.innerHTML='<div class="vision-result"><div class="vr-flag">COACH UPLINK FAILED — '+uplinkMsg(e)+'</div></div>'}
 }
 function briefingCard(){
   const B=S.briefing.r;
@@ -838,11 +838,11 @@ function viewMission(){
       const startKg=last0?recNext(last0):(rx?rx.kg:'');
       const startReps=last0?last0.reps:(parseInt(ex.target)||'');
       const startRpe=(last0&&last0.rpe!=null)?last0.rpe:'';
-      const status=el('<span class="ex-last">'+(last0?('S'+ts0.length+' DONE: '+last0.kg+'×'+last0.reps+(last0.rpe?'@'+last0.rpe:'')+' · NEXT REC: '+startKg+' KG'):'')+'</span>');
+      const status=el('<span class="ex-last">'+(last0?('S'+ts0.length+' DONE: '+(last0.kg!=null?last0.kg:'BW')+'×'+last0.reps+(last0.rpe?'@'+last0.rpe:'')+(startKg!=null&&startKg!==''?' · NEXT REC: '+startKg+' KG':'')):'')+'</span>');
       li.querySelector('.ex-line').appendChild(status);
       // wrap KG input with steppers
       const kgLabel=li.querySelector('.ex-inputs label.f');
-      const kgI=kgLabel.querySelector('input');kgI.value=startKg;
+      const kgI=kgLabel.querySelector('input');kgI.value=(startKg!=null&&startKg!=='')?startKg:'';
       const wrap=el('<div class="stepwrap"><button class="step" type="button" aria-label="Minus 2.5 kg">−</button><button class="step" type="button" aria-label="Plus 2.5 kg">+</button></div>');
       kgLabel.appendChild(wrap);wrap.insertBefore(kgI,wrap.children[1]);
       wrap.children[0].addEventListener('click',()=>{kgI.value=Math.max(0,(Number(kgI.value)||0)-2.5)});
@@ -854,8 +854,8 @@ function viewMission(){
       function refreshRow(){const ts=exSets();const last=ts[ts.length-1];
         actions.hidden=!last;
         if(last){const rec=recNext(last);
-          status.textContent='S'+ts.length+' DONE: '+last.kg+'×'+last.reps+(last.rpe?'@'+last.rpe:'')+' · NEXT REC: '+rec+' KG';
-          kgI.value=rec;inputs[1].value=last.reps;if(last.rpe!=null)inputs[2].value=last.rpe;}
+          status.textContent='S'+ts.length+' DONE: '+(last.kg!=null?last.kg:'BW')+'×'+last.reps+(last.rpe?'@'+last.rpe:'')+(rec!=null?' · NEXT REC: '+rec+' KG':'');
+          if(rec!=null)kgI.value=rec;inputs[1].value=last.reps;if(last.rpe!=null)inputs[2].value=last.rpe;}
         else{status.textContent='';kgI.value=rx?rx.kg:'';inputs[1].value=parseInt(ex.target)||'';inputs[2].value=''}}
       function doLog(kg,reps,rpe,spd){
         S.sets.push({date:today(),profile:S.profile,blockId:block.id,exercise:ex.name,
@@ -1012,7 +1012,7 @@ function viewVision(){
         addMeal(r.name||'Snap Meal',r.calories|0,r.protein_g|0,r.carbs_g|0,r.fat_g|0,'data:image/jpeg;base64,'+thumbB64);
         tab='fuel';render()});
       box.appendChild(card);
-    }catch(err){visionErr(box)}
+    }catch(err){visionErr(box,err)}
     e.target.value=''});
   view.appendChild(meal);
 
@@ -1039,7 +1039,7 @@ function viewVision(){
         S.scanProgram={label:'SCANNED',sub:'AI-BUILT FROM GYM SCAN — '+(r.equipment||[]).slice(0,4).join(', ').toUpperCase(),blocks:r.blocks};
         S.profile='scan';tab='mission';render()});
       box.appendChild(card);
-    }catch(err){visionErr(box)}
+    }catch(err){visionErr(box,err)}
     e.target.value=''});
   view.appendChild(gym);
 
@@ -1064,7 +1064,7 @@ function viewVision(){
         ((r.cues||[]).length?'<p style="font-size:13px;margin:8px 0 2px"><b>CUES:</b></p><ul style="margin:0;padding-left:18px;font-size:13px">'+r.cues.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'')+
         (r.caution?'<div class="vr-flag">⚠ '+esc(r.caution)+'</div>':'')+
         '<p class="api-note">3 sampled frames, not continuous tracking — treat as advisory, not gospel. A qualified human eye still outranks it.</p></div>'));
-    }catch(err){visionErr(box)}
+    }catch(err){visionErr(box,err)}
     e.target.value=''});
   view.appendChild(fc);
 
@@ -1078,11 +1078,19 @@ function viewVision(){
     e.target.textContent='PINGING...';e.target.disabled=true;
     try{const r=await claudeText('Respond ONLY with raw JSON: {"ok":true}');
       toast(r&&r.ok?'UPLINK CONFIRMED — VISION SYSTEMS ARMED':'UPLINK RESPONDED — UNEXPECTED PAYLOAD')}
-    catch(err){toast('UPLINK FAILED — CHECK KEY / NETWORK')}
+    catch(err){toast(uplinkMsg(err))}
     e.target.textContent='TEST UPLINK';e.target.disabled=false});
   view.appendChild(keyPnl);
 }
-function visionErr(box){box.innerHTML='<div class="vision-result"><div class="vr-flag">UPLINK FAILED. Deployed build: add an API key in VISION UPLINK. Otherwise retry — connection or parse error.</div></div>'}
+function uplinkMsg(err){
+  if(err&&err.status===401||err&&err.status===403)return 'KEY REJECTED (HTTP '+err.status+'). Paste a valid Anthropic API key in VISION → UPLINK, save, and TEST.';
+  if(err&&err.status===404)return 'MODEL UNAVAILABLE (404). Report this to the coach for a model-string update.';
+  if(err&&err.status===429)return 'RATE LIMITED (429). Stand down 60 seconds and retry.';
+  if(err&&err.status>=500)return 'AI API OVERLOADED ('+err.status+'). Not your fault — retry shortly.';
+  if(err instanceof SyntaxError)return 'RESPONSE PARSE ERROR. Retry — the model returned malformed data.';
+  return 'NO UPLINK ROUTE. On a deployed build an API key is MANDATORY: VISION → UPLINK → paste key → SAVE → TEST UPLINK. Also check signal.';
+}
+function visionErr(box,err){box.innerHTML='<div class="vision-result"><div class="vr-flag">'+uplinkMsg(err)+'</div></div>'}
 
 /* ---------- DATA ---------- */
 function viewData(){
@@ -1254,7 +1262,7 @@ function viewData(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V7.2 · PACE CALC · BRICK TIMER · CLOCK MILESTONE CUES · AUTO 45:00 CAP</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V7.3 · BW-SET FIX · UPLINK DIAGNOSTICS</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
