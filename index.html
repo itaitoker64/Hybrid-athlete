@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V7.3 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V7.4 — Flow &amp; Power</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -259,7 +259,7 @@ input::placeholder{color:#B9B6AA}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V7.3</span>
+      <span class="brand-sub">FLOW &amp; POWER · V7.4</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -572,14 +572,32 @@ function handleVoice(raw){const t=raw.toLowerCase().replace(/,/g,' ');
   if(tab==='mission')render()}
 
 /* ============ CLAUDE VISION API ============ */
+function aiProvider(){const k=(S.apiKey||'').trim();
+  if(!k)return 'anthropic-keyless';
+  return k.startsWith('AIza')?'gemini':'anthropic'}
 async function claudeMM(content){
+  return aiProvider()==='gemini'?geminiCall(content):anthropicCall(content)}
+async function anthropicCall(content){
   const body=JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content}]});
   const headers={'Content-Type':'application/json'};
-  if(S.apiKey){headers['x-api-key']=S.apiKey;headers['anthropic-version']='2023-06-01';headers['anthropic-dangerous-direct-browser-access']='true'}
+  if(S.apiKey){headers['x-api-key']=S.apiKey.trim();headers['anthropic-version']='2023-06-01';headers['anthropic-dangerous-direct-browser-access']='true'}
   const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers,body});
   if(!res.ok){const e=new Error('API '+res.status);e.status=res.status;throw e}
   const data=await res.json();
   const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  return JSON.parse(text.replace(/```json|```/g,'').trim())}
+async function geminiCall(content){
+  const parts=content.map(b=>b.type==='image'
+    ?{inline_data:{mime_type:b.source.media_type,data:b.source.data}}
+    :{text:b.text});
+  const body=JSON.stringify({contents:[{role:'user',parts}],
+    generationConfig:{maxOutputTokens:2000,responseMimeType:'application/json'}});
+  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    {method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':S.apiKey.trim()},body});
+  if(!res.ok){const e=new Error('API '+res.status);e.status=res.status;throw e}
+  const data=await res.json();
+  const text=((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(p=>p.text||'').join('');
+  if(!text){const e=new Error('EMPTY');e.status=422;throw e}
   return JSON.parse(text.replace(/```json|```/g,'').trim())}
 function imgBlock(b64){return {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}}}
 function fileToScaledB64(file,max){return new Promise((resolve,reject)=>{
@@ -1070,8 +1088,8 @@ function viewVision(){
 
   // key
   const keyPnl=el('<section class="panel panel-pad"><h2 class="panel-title">VISION UPLINK</h2>'+
-    '<p class="api-note">Inside Claude, vision runs keyless. On a deployed build, paste an Anthropic API key — stored on this device only, sent only to api.anthropic.com. Treat any browser-held key as exposable: use a low-limit key.</p>'+
-    '<div class="row mt"><label class="f"><span>ANTHROPIC API KEY (OPTIONAL)</span><input id="keyIn" type="password" placeholder="sk-ant-..." value="'+esc(S.apiKey||'')+'"></label>'+
+    '<p class="api-note">Inside Claude, vision runs keyless. On a deployed build, paste a key — FREE option: aistudio.google.com → Get API key (Gemini, starts AIza, no card needed). Or an Anthropic key (sk-ant-...). Auto-detected by prefix; sent only to the matching provider, stored on this device only. Treat any browser-held key as exposable.</p>'+
+    '<div class="row mt"><label class="f"><span>AI API KEY — GEMINI (FREE) OR ANTHROPIC</span><input id="keyIn" type="password" placeholder="AIza... or sk-ant-..." value="'+esc(S.apiKey||'')+'"></label>'+
     '<button class="btn" id="keySave">SAVE</button></div>'+'<button class="btn wide mt" id="keyTest">TEST UPLINK</button></section>');
   keyPnl.querySelector('#keySave').addEventListener('click',()=>{S.apiKey=keyPnl.querySelector('#keyIn').value.trim();save();beep(520,.15);toast('KEY SAVED ON-DEVICE')});
   keyPnl.querySelector('#keyTest').addEventListener('click',async e=>{
@@ -1083,12 +1101,12 @@ function viewVision(){
   view.appendChild(keyPnl);
 }
 function uplinkMsg(err){
-  if(err&&err.status===401||err&&err.status===403)return 'KEY REJECTED (HTTP '+err.status+'). Paste a valid Anthropic API key in VISION → UPLINK, save, and TEST.';
+  if(err&&(err.status===400||err.status===401||err.status===403))return 'KEY REJECTED (HTTP '+err.status+'). Check the key in VISION → UPLINK: Gemini keys start AIza..., Anthropic keys sk-ant-... Save and TEST.';
   if(err&&err.status===404)return 'MODEL UNAVAILABLE (404). Report this to the coach for a model-string update.';
-  if(err&&err.status===429)return 'RATE LIMITED (429). Stand down 60 seconds and retry.';
+  if(err&&err.status===429)return 'RATE LIMITED (429). Free-tier Gemini caps requests per minute — stand down 60 seconds and retry.';
   if(err&&err.status>=500)return 'AI API OVERLOADED ('+err.status+'). Not your fault — retry shortly.';
   if(err instanceof SyntaxError)return 'RESPONSE PARSE ERROR. Retry — the model returned malformed data.';
-  return 'NO UPLINK ROUTE. On a deployed build an API key is MANDATORY: VISION → UPLINK → paste key → SAVE → TEST UPLINK. Also check signal.';
+  return 'NO UPLINK ROUTE. On a deployed build an API key is MANDATORY: free Gemini key from aistudio.google.com (AIza...) or Anthropic key (sk-ant-...) → VISION → UPLINK → SAVE → TEST. Also check signal.';
 }
 function visionErr(box,err){box.innerHTML='<div class="vision-result"><div class="vr-flag">'+uplinkMsg(err)+'</div></div>'}
 
@@ -1262,7 +1280,7 @@ function viewData(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V7.3 · BW-SET FIX · UPLINK DIAGNOSTICS</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V7.4 · DUAL AI PROVIDER — GEMINI (FREE TIER) + ANTHROPIC</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
