@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V7.4.1 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V7.4.2 — Flow &amp; Power</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -98,8 +98,9 @@ button{cursor:pointer;font-family:inherit}
 .ex-swap{appearance:none;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:9px;padding:4px 8px;min-height:26px}
 .ex-inputs{display:flex;gap:6px;margin-top:10px;align-items:flex-end}
 .stepwrap{display:flex;gap:4px;align-items:stretch}
-.stepwrap input{flex:1;min-width:0}
-.step{appearance:none;background:var(--surface2);border:1px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:16px;min-width:42px;min-height:46px}
+.stepwrap input{flex:1;min-width:58px;text-align:center;padding:10px 4px}
+.ex-inputs label.f:first-child{flex:2.4}
+.step{appearance:none;background:var(--surface2);border:1px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:16px;min-width:36px;min-height:46px}
 .step:active{background:var(--primary);color:var(--on-primary)}
 .ex-last{font-family:var(--mono);font-size:9px;color:var(--success);width:100%;letter-spacing:.06em}
 .ex-actions{display:flex;gap:6px;margin-top:6px}
@@ -259,7 +260,7 @@ input::placeholder{color:#B9B6AA}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V7.4.1</span>
+      <span class="brand-sub">FLOW &amp; POWER · V7.4.2</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -572,6 +573,8 @@ function handleVoice(raw){const t=raw.toLowerCase().replace(/,/g,' ');
   if(tab==='mission')render()}
 
 /* ============ CLAUDE VISION API ============ */
+function parseAI(text){const t=String(text).replace(/```json|```/g,'').trim();
+  try{return JSON.parse(t)}catch(e){const m=t.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw e}}
 function aiProvider(){const k=(S.apiKey||'').trim();
   if(!k)return 'anthropic-keyless';
   return k.startsWith('sk-ant-')?'anthropic':'gemini'}
@@ -586,20 +589,20 @@ async function anthropicCall(content){
   if(!res.ok){const e=new Error('API '+res.status);e.status=res.status;throw e}
   const data=await res.json();
   const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-  return JSON.parse(text.replace(/```json|```/g,'').trim())}
+  return parseAI(text)}
 async function geminiCall(content){
   const parts=content.map(b=>b.type==='image'
     ?{inline_data:{mime_type:b.source.media_type,data:b.source.data}}
     :{text:b.text});
   const body=JSON.stringify({contents:[{role:'user',parts}],
-    generationConfig:{maxOutputTokens:2000,responseMimeType:'application/json'}});
+    generationConfig:{maxOutputTokens:4096,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}});
   const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
     {method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':S.apiKey.trim()},body});
   if(!res.ok){const e=new Error('API '+res.status);e.status=res.status;throw e}
   const data=await res.json();
   const text=((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(p=>p.text||'').join('');
   if(!text){const e=new Error('EMPTY');e.status=422;throw e}
-  return JSON.parse(text.replace(/```json|```/g,'').trim())}
+  return parseAI(text)}
 function imgBlock(b64){return {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}}}
 function fileToScaledB64(file,max){return new Promise((resolve,reject)=>{
   const img=new Image(),url=URL.createObjectURL(file);
@@ -1281,7 +1284,7 @@ function viewData(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V7.4.1 · GEMINI DEFAULT ROUTING — ANY NON-ANTHROPIC KEY</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V7.4.2 · KG FIELD WIDTH FIX · GEMINI THINKING OFF + 4K TOKENS + SALVAGE PARSER</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
