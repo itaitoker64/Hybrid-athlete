@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V8.0 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V8.0.1 — Flow &amp; Power</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -272,7 +272,7 @@ input::placeholder{color:#B9B6AA}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V8.0</span>
+      <span class="brand-sub">FLOW &amp; POWER · V8.0.1</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -373,7 +373,8 @@ let FB={auth:null,db:null,user:null};
 let UID='local', booted=false;
 const DEFAULT_S=JSON.stringify(S);
 function freshState(){return JSON.parse(DEFAULT_S)}
-function fbConfig(){try{const r=localStorage.getItem('ha-fb-config');return r?JSON.parse(r):null}catch(e){return null}}
+const FB_DEFAULT={apiKey:"AIzaSyCaoStV3Vl-YC73whAGel4wFvC8VeMFH1s",authDomain:"training2026-79831.firebaseapp.com",projectId:"training2026-79831",storageBucket:"training2026-79831.firebasestorage.app",messagingSenderId:"714351816479",appId:"1:714351816479:web:bbd25633351006db0c0a2a"};
+function fbConfig(){try{const r=localStorage.getItem('ha-fb-config');if(r)return JSON.parse(r)}catch(e){};return FB_DEFAULT}
 function fbReady(){return !!(FB.auth)}
 function fbInit(){const cfg=fbConfig();if(!cfg||!window.firebase)return false;
   try{firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(cfg);
@@ -1368,7 +1369,7 @@ function viewData(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V8.0 · MULTI-USER — GOOGLE / EMAIL / APPLE SIGN-IN · PER-OPERATOR CLOUD SYNC</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V8.0.1 · FIREBASE PROJECT training2026 WIRED IN — ACCOUNTS LIVE</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
