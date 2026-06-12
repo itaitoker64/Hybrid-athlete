@@ -11,7 +11,10 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V7.4.2 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V8.0 — Flow &amp; Power</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -253,6 +256,15 @@ input,select{background:var(--surface)}
 table.squad .you{color:var(--primary)}
 input::placeholder{color:#B9B6AA}
 .empty{font-style:italic;font-family:var(--display)}
+
+/* ===== AUTH GATE (V8) ===== */
+.gate{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:20px}
+.gate-card{width:100%;max-width:420px}
+.gate-brand{font-family:var(--display);font-weight:700;font-size:30px;text-align:center;margin-bottom:2px}
+.gate-brand b{color:var(--primary)}
+.gate-sub{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--primary);text-align:center;display:block;margin-bottom:20px}
+.gate .panel-pad{display:flex;flex-direction:column;gap:10px}
+.gate .or{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--muted);text-align:center;margin:4px 0}
 </style>
 </head>
 <body>
@@ -260,7 +272,7 @@ input::placeholder{color:#B9B6AA}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V7.4.2</span>
+      <span class="brand-sub">FLOW &amp; POWER · V8.0</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -355,7 +367,28 @@ let S={profile:'base',scanProgram:null,swaps:{},weights:[{date:today(),kg:90.0}]
 let mem=null;
 function liso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function today(){return liso(new Date())}
+
+/* ===== MULTI-USER / FIREBASE (V8) ===== */
+let FB={auth:null,db:null,user:null};
+let UID='local', booted=false;
+const DEFAULT_S=JSON.stringify(S);
+function freshState(){return JSON.parse(DEFAULT_S)}
+function fbConfig(){try{const r=localStorage.getItem('ha-fb-config');return r?JSON.parse(r):null}catch(e){return null}}
+function fbReady(){return !!(FB.auth)}
+function fbInit(){const cfg=fbConfig();if(!cfg||!window.firebase)return false;
+  try{firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(cfg);
+    FB.auth=firebase.auth();FB.db=firebase.firestore();return true}catch(e){return false}}
+function stateKey(){return UID==='local'?'ha-state-v6':'ha-state-v6:'+UID}
 async function loadState(){
+  if(UID!=='local'){
+    let cloud=null,local=null;
+    try{const d=await FB.db.collection('users').doc(UID).get();if(d.exists&&d.data().state)cloud=JSON.parse(d.data().state)}catch(e){}
+    try{const r=localStorage.getItem(stateKey());if(r)local=JSON.parse(r)}catch(e){}
+    if(cloud&&(!local||(cloud._ts||0)>=(local._ts||0)))return cloud;
+    if(local)return local;
+    try{const r=localStorage.getItem('ha-state-v6');if(r)return JSON.parse(r)}catch(e){}
+    return null;
+  }
   for(const key of ['ha-state-v6','ha-state-v5','ha-state-v4','ha-state-v3','ha-state-v2']){
     try{ if(window.storage){const r=await window.storage.get(key);if(r&&r.value)return JSON.parse(r.value)} }catch(e){}
     try{ const r=localStorage.getItem(key); if(r)return JSON.parse(r) }catch(e){}
@@ -363,11 +396,17 @@ async function loadState(){
   return mem;
 }
 let saveT=null;
-function save(){clearTimeout(saveT);
-  saveT=setTimeout(async()=>{const s=JSON.stringify(S);mem=S;
-    try{ if(window.storage){await window.storage.set('ha-state-v6',s);return} }catch(e){}
-    try{ localStorage.setItem('ha-state-v6',s) }catch(e){toast('STORAGE FULL — CULL PHOTOS OR EXPORT+RESET')}
+function save(){if(!booted)return;clearTimeout(saveT);
+  saveT=setTimeout(async()=>{S._ts=Date.now();const s=JSON.stringify(S);mem=S;
+    try{ if(UID==='local'&&window.storage){await window.storage.set('ha-state-v6',s)} }catch(e){}
+    try{ localStorage.setItem(stateKey(),s) }catch(e){toast('STORAGE FULL — CULL PHOTOS OR EXPORT+RESET')}
+    if(UID!=='local'&&FB.db){try{await FB.db.collection('users').doc(UID).set({state:s,_ts:S._ts,email:FB.user&&FB.user.email||null})}catch(e){}}
   },300)}
+function parseFbConfigText(txt){
+  const m=String(txt).match(/\{[\s\S]*\}/);if(!m)throw new Error('no object');
+  let t=m[0].replace(/\/\/[^\n]*/g,'').replace(/'/g,'"').replace(/([,{]\s*)([A-Za-z0-9_]+)\s*:/g,'$1"$2":').replace(/,\s*}/g,'}');
+  return JSON.parse(t);
+}
 
 /* ============ HELPERS ============ */
 const $=s=>document.querySelector(s);
@@ -471,6 +510,34 @@ function adherence28(){if(!S.plannedWk.length)return null;
 function proteinStreak(){let n=0;
   for(let i=0;i<365;i++){const d=dstr(-i);const rec=S.nutrition[d];const hit=rec&&rec.protein>=cfgP();
     if(hit)n++;else{if(i===0)continue;break}}return n}
+
+/* ============ AUTH GATE ============ */
+function showAuthGate(){
+  closeAuthGate();
+  const g=el('<div class="gate"><div class="gate-card">'+
+    '<div class="gate-brand">HYBRID<b>/</b>ATHLETE</div><span class="gate-sub">OPERATOR LOGIN</span>'+
+    '<section class="panel panel-pad">'+
+    '<label class="f"><span>EMAIL</span><input id="auE" type="email" autocomplete="email" placeholder="operator@unit.com"></label>'+
+    '<label class="f"><span>PASSWORD</span><input id="auP" type="password" autocomplete="current-password" placeholder="••••••••"></label>'+
+    '<div class="row"><button class="btn primary wide" id="auIn">SIGN IN</button><button class="btn wide" id="auNew">CREATE ACCOUNT</button></div>'+
+    '<div class="or">— OR —</div>'+
+    '<button class="btn wide" id="auG">CONTINUE WITH GOOGLE</button>'+
+    '<button class="btn wide" id="auA">CONTINUE WITH APPLE</button>'+
+    '<p class="api-note">Apple activates only after Apple Developer Program setup in Firebase. Google and email work now.</p>'+
+    '<div class="or">— OR —</div>'+
+    '<button class="btn ghost wide" id="auL">USE LOCAL MODE (THIS DEVICE ONLY)</button>'+
+    '</section></div></div>');
+  const E=()=>g.querySelector('#auE').value.trim(),P=()=>g.querySelector('#auP').value;
+  g.querySelector('#auIn').addEventListener('click',()=>{if(!E()||!P())return toast('EMAIL + PASSWORD REQUIRED');
+    FB.auth.signInWithEmailAndPassword(E(),P()).catch(err=>toast('SIGN-IN FAILED: '+(err.code||err.message)))});
+  g.querySelector('#auNew').addEventListener('click',()=>{if(!E()||P().length<6)return toast('EMAIL + 6+ CHAR PASSWORD');
+    FB.auth.createUserWithEmailAndPassword(E(),P()).catch(err=>toast('CREATE FAILED: '+(err.code||err.message)))});
+  g.querySelector('#auG').addEventListener('click',()=>{FB.auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()).catch(err=>toast(err.code||'GOOGLE FAILED'))});
+  g.querySelector('#auA').addEventListener('click',()=>{FB.auth.signInWithRedirect(new firebase.auth.OAuthProvider('apple.com')).catch(err=>toast('APPLE NOT CONFIGURED IN FIREBASE YET'))});
+  g.querySelector('#auL').addEventListener('click',()=>{try{localStorage.setItem('ha-skip-auth','1')}catch(e){};closeAuthGate();startLocal()});
+  document.body.appendChild(g);
+}
+function closeAuthGate(){document.querySelectorAll('.gate').forEach(x=>x.remove())}
 
 /* ============ TOAST / AUDIO ============ */
 let toastT=null;
@@ -1281,10 +1348,27 @@ function viewData(){
       else toast('PERMISSION DENIED BY DEVICE')}catch(e){toast('PERMISSION DENIED BY DEVICE')}});
   view.appendChild(rp);
 
+  // account
+  const cloudCfg=fbConfig();
+  const acct=el('<section class="panel panel-pad"><h2 class="panel-title">OPERATOR ACCOUNT</h2>'+
+    (FB.user?'<p class="panel-note">Signed in: <b>'+esc(FB.user.email||FB.user.uid)+'</b> — state syncs to your private cloud doc. Every operator gets isolated objectives, logs, and coach feed.</p><button class="btn wide mt" id="acOut">SIGN OUT</button>'
+     :cloudCfg?'<p class="panel-note">Account system armed. Currently LOCAL MODE on this device.</p><button class="btn primary wide mt" id="acIn">SIGN IN / CREATE OPERATOR</button>'
+     :'<p class="panel-note">Multi-user OFF — no backend configured. Create a free Firebase project, then paste its config object below to arm Google / email / Apple sign-in with per-operator cloud sync.</p>')+
+    '<label class="f mt"><span>FIREBASE CONFIG (PASTE OBJECT)</span><input id="acCfg" placeholder="{ apiKey: ..., projectId: ... }"></label>'+
+    '<button class="btn wide mt" id="acSave">SAVE CONFIG + RELOAD</button></section>');
+  const aOut=acct.querySelector('#acOut');if(aOut)aOut.addEventListener('click',()=>{try{localStorage.removeItem('ha-skip-auth')}catch(e){};FB.auth.signOut().then(()=>location.reload())});
+  const aIn=acct.querySelector('#acIn');if(aIn)aIn.addEventListener('click',()=>{try{localStorage.removeItem('ha-skip-auth')}catch(e){};if(fbReady())showAuthGate();else location.reload()});
+  acct.querySelector('#acSave').addEventListener('click',()=>{
+    try{const cfg=parseFbConfigText(acct.querySelector('#acCfg').value);
+      if(!cfg.apiKey||!cfg.projectId)throw new Error('missing fields');
+      localStorage.setItem('ha-fb-config',JSON.stringify(cfg));toast('CONFIG ARMED — RELOADING');setTimeout(()=>location.reload(),800)}
+    catch(e){toast('CONFIG PARSE FAILED — PASTE THE WHOLE firebaseConfig OBJECT')}});
+  view.appendChild(acct);
+
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V7.4.2 · KG FIELD WIDTH FIX · GEMINI THINKING OFF + 4K TOKENS + SALVAGE PARSER</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V8.0 · MULTI-USER — GOOGLE / EMAIL / APPLE SIGN-IN · PER-OPERATOR CLOUD SYNC</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
@@ -1446,11 +1530,29 @@ function stopHiit(){hiit.running=false;clearInterval(hiit.timer);hiit.phase='REA
 /* ============ NAV + BOOT ============ */
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;render()}));
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})})}
-(async()=>{const loaded=await loadState();if(loaded)S=Object.assign(S,loaded);
+function applyDefaults(){
   S.missionLog=S.missionLog||[];S.hiitLog=S.hiitLog||[];S.readiness=S.readiness||{};S.templates=S.templates||[];
   S.measures=S.measures||[];S.photos=S.photos||[];S.plannedWk=S.plannedWk||[];S.squadBoard=S.squadBoard||[];
-  S.swaps=S.swaps||{};S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};if(!S.startDate)S.startDate=S.weights.length?S.weights[0].date:today();
-  restoreClock();renderClock();render();setTimeout(checkReminders,2500)})();
+  S.swaps=S.swaps||{};S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
+  if(!S.startDate)S.startDate=S.weights.length?S.weights[0].date:today()}
+async function bootApp(){booted=false;
+  const loaded=await loadState();
+  S=loaded?Object.assign(freshState(),loaded):freshState();
+  applyDefaults();booted=true;
+  restoreClock();renderClock();render();setTimeout(checkReminders,2500)}
+function startLocal(){UID='local';FB.user=null;bootApp()}
+(function(){
+  const hasFb=fbInit();
+  if(!hasFb){startLocal();return}
+  let skip=false;try{skip=localStorage.getItem('ha-skip-auth')==='1'}catch(e){}
+  FB.auth.getRedirectResult().catch(()=>{});
+  FB.auth.onAuthStateChanged(u=>{
+    FB.user=u;
+    if(u){try{localStorage.removeItem('ha-skip-auth')}catch(e){};closeAuthGate();UID=u.uid;bootApp();toast('OPERATOR: '+(u.email||u.uid).toUpperCase())}
+    else if(skip){closeAuthGate();startLocal()}
+    else{booted=false;showAuthGate()}
+  });
+})();
 </script>
 </body>
 </html>
