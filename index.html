@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V9.0 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V9.1 — Flow &amp; Power</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -317,7 +317,7 @@ body.athlete .brand-sub{color:var(--primary)}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V9.0</span>
+      <span class="brand-sub">FLOW &amp; POWER · V9.1</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -952,14 +952,13 @@ function renderNav(){
     nav.style.gridTemplateColumns='repeat(5,1fr)';
     nav.innerHTML=NAV_ATHLETE.map(([id,lab,path])=>'<button data-tab="'+id+'" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="'+path+'"/></svg>'+lab+'</button>').join('');
   }else{
-    nav.style.gridTemplateColumns='repeat(6,1fr)';
+    nav.style.gridTemplateColumns='repeat(5,1fr)';
     nav.innerHTML=''+
-      '<button data-tab="mission" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h3M18 12h3M7 8v8M17 8v8M7 12h10M5 9v6M19 9v6"/></svg>MISSION</button>'+
+      '<button data-tab="mission" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h3M18 12h3M7 8v8M17 8v8M7 12h10M5 9v6M19 9v6"/></svg>TODAY</button>'+
       '<button data-tab="fuel" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>FUEL</button>'+
-      '<button data-tab="vision" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>VISION</button>'+
-      '<button data-tab="data" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg>DATA</button>'+
-      '<button data-tab="hiit" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg>HIIT</button>'+
-      '<button data-tab="pilates" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 18c3-6 13-6 16 0M7 11a5 5 0 0 1 10 0M12 4v3"/></svg>PILATES</button>';
+      '<button data-tab="pilates" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 18c3-6 13-6 16 0M7 11a5 5 0 0 1 10 0M12 4v3"/></svg>PILATES</button>'+
+      '<button data-tab="data" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg>PROGRESS</button>'+
+      '<button data-tab="profile" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>PROFILE</button>';
   }
   document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;render()}));
 }
@@ -1177,7 +1176,8 @@ function render(){
     save();return;
   }
   if(hb0)hb0.style.display='';
-  if(!['mission','fuel','vision','data','hiit','pilates'].includes(tab))tab='mission';
+  if(['vision','hiit'].includes(tab))tab='mission';
+  if(!['mission','fuel','data','pilates','profile'].includes(tab))tab='mission';
   const kg=currentKg();
   $('#hdrKg').textContent=kg!=null?kg.toFixed(1):'--.-';
   const d=kg!=null?kg-cfgT():null;const hd=$('#hdrDelta');
@@ -1187,7 +1187,7 @@ function render(){
   if(liftDayToday()&&ml<WATER_TARGET)hb.appendChild(el('<div class="banner" role="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg><span>COMPOUND DAY. HYDRATION '+(ml/1000).toFixed(1)+' L — '+((WATER_TARGET-ml)/1000).toFixed(1)+' L SHORT OF 3.0 L. DRINK.</span></div>'));
   document.querySelectorAll('.nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-selected',b.dataset.tab===tab)});
   view.innerHTML='';
-  ({mission:viewMission,fuel:viewFuel,vision:viewVision,data:viewData,hiit:viewHiit,pilates:viewPilates})[tab]();
+  ({mission:viewMission,fuel:viewFuel,data:viewData,pilates:viewPilates,profile:viewProfileCmd})[tab]();
   save()}
 
 /* ---------- MISSION ---------- */
@@ -1350,7 +1350,14 @@ function viewMission(){
   view.appendChild(doneBtn);
   if(SR){const fab=el('<button class="fab" id="voiceFab" aria-label="Voice log a set"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>');
     fab.addEventListener('click',startVoice);view.appendChild(fab)}
-  view.appendChild(el('<p class="footrule">Missions logged: '+S.missions.length+'. HIIT '+(S.missions.length>=3?'UNLOCKED':'locks open at 3')+'. Sharp, joint-based, or new pain: stop the block and log it — that\'s a report, not an excuse.</p>'));
+  view.appendChild(el('<p class="footrule">Missions logged: '+S.missions.length+'. Sharp, joint-based, or new pain: stop the block and log it — that\'s a report, not an excuse.</p>'));
+  // in-session AI tools (relocated from VISION — used DURING training)
+  view.appendChild(el('<h3 class="sub">IN-SESSION TOOLS</h3>'));
+  view.appendChild(buildScanGym());
+  view.appendChild(buildFormCheck());
+  // HIIT bonus block entry (relocated from its own tab — post-lift option)
+  view.appendChild(el('<h3 class="sub">BONUS BLOCK</h3>'));
+  viewHiitInto(view);
 }
 
 /* ---------- FUEL ---------- */
@@ -1362,6 +1369,7 @@ function gauge(label,val,limit,unit,danger,good,note){
   '<div class="gauge-fill '+(danger?'danger':'')+' '+(good?'good':'')+'" style="width:'+pct+'%"></div></div>'+
   '<div class="gauge-note '+(danger?'t-danger':'')+' '+(good?'t-good':'')+'">'+note+'</div></div>'}
 function viewFuel(){
+  view.appendChild(buildSnapMeal());
   const d=dayN(),ml=S.water[today()]||0;
   const af=(S.aiFuel&&S.aiFuel.date===today())?S.aiFuel:null;
   const refeed=isRefeedDay();const cap=af?af.kcal:(refeed?(cfgK()+700):cfgK());
@@ -1446,7 +1454,7 @@ function viewFuel(){
 }
 
 /* ---------- VISION ---------- */
-function viewVision(){
+function buildSnapMeal(){
   const camI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>';
   const scanI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>';
   // snap meal
@@ -1477,9 +1485,10 @@ function viewVision(){
       box.appendChild(card);
     }catch(err){visionErr(box,err)}
     e.target.value=''});
-  view.appendChild(meal);
-
-  // scan gym
+  return meal;
+}
+function buildScanGym(){
+  const scanI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>';
   const gym=el('<section class="panel panel-pad"><h2 class="panel-title">'+scanI+'SCAN GYM</h2>'+
     '<p class="panel-note">Photograph the training space. AI builds a zero-friction 4-block mission from ONLY detected equipment.</p>'+
     '<input type="file" accept="image/*" capture="environment" id="gymFile" hidden>'+
@@ -1504,9 +1513,10 @@ function viewVision(){
       box.appendChild(card);
     }catch(err){visionErr(box,err)}
     e.target.value=''});
-  view.appendChild(gym);
-
-  // form check
+  return gym;
+}
+function buildFormCheck(){
+  const camI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>';
   const fc=el('<section class="panel panel-pad"><h2 class="panel-title">'+camI+'FORM CHECK — BAR PATH</h2>'+
     '<p class="panel-note">Upload a short video of one set (side angle, full body in frame). AI samples 3 frames and critiques depth, spine, and bar path.</p>'+
     '<input type="file" accept="video/*" capture="environment" id="fcFile" hidden>'+
@@ -1529,9 +1539,9 @@ function viewVision(){
         '<p class="api-note">3 sampled frames, not continuous tracking — treat as advisory, not gospel. A qualified human eye still outranks it.</p></div>'));
     }catch(err){visionErr(box,err)}
     e.target.value=''});
-  view.appendChild(fc);
-
-  // key
+  return fc;
+}
+function buildUplinkPanel(){
   const keyPnl=el('<section class="panel panel-pad"><h2 class="panel-title">VISION UPLINK</h2>'+
     '<p class="api-note">Inside Claude, vision runs keyless. On a deployed build, paste a key — FREE option: aistudio.google.com → Get API key (Gemini, starts AIza, no card needed). Or an Anthropic key (sk-ant-...). Auto-detected by prefix; sent only to the matching provider, stored on this device only. Treat any browser-held key as exposable.</p>'+
     '<div class="row mt"><label class="f"><span>AI API KEY — GEMINI (FREE) OR ANTHROPIC</span><input id="keyIn" type="password" placeholder="AIza... or sk-ant-..." value="'+esc(S.apiKey||'')+'"></label>'+
@@ -1543,7 +1553,7 @@ function viewVision(){
       toast(r&&r.ok?'UPLINK CONFIRMED — VISION SYSTEMS ARMED':'UPLINK RESPONDED — UNEXPECTED PAYLOAD')}
     catch(err){toast(uplinkMsg(err))}
     e.target.textContent='TEST UPLINK';e.target.disabled=false});
-  view.appendChild(keyPnl);
+  return keyPnl;
 }
 function uplinkMsg(err){
   if(err&&(err.status===400||err.status===401||err.status===403))return 'KEY REJECTED (HTTP '+err.status+'). Check the key in VISION → UPLINK: Gemini keys start AIza..., Anthropic keys sk-ant-... Save and TEST.';
@@ -1686,6 +1696,19 @@ function viewData(){
       const kOk=r.kcal<=cfgK(),pOk=r.protein>=cfgP();
       return '<li><span class="sl-b">'+d2+'</span><span class="num '+(kOk?'t-good':'t-danger')+'">'+r.kcal+' kcal</span><span class="num '+(pOk?'t-good':'t-danger')+'">'+r.protein+' g P</span></li>'}).join('')+'</ul></section>'));
 
+  // recent sets
+  const recent=S.sets.slice(-20).reverse();
+  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">RECENT SETS</h2>'+
+    (recent.length?'<ul class="setlist">'+recent.map(s=>'<li><span class="sl-a">'+esc(s.blockId)+'</span><span class="sl-b">'+esc(s.exercise)+'</span><span class="num">'+(s.kg?s.kg+' kg × ':'')+s.reps+(s.rpe?' @ '+s.rpe:'')+(s.spd?' · '+s.spd:'')+'</span></li>').join('')+'</ul>'
+    :'<p class="empty">No sets on record. Open MISSION and put numbers on the board.</p>')+'</section>'));
+}
+
+function viewProfileCmd(){
+  view.appendChild(el('<h3 class="sub">OPERATOR PROFILE &amp; SYSTEM</h3>'));
+  const swap=el('<section class="panel panel-pad"><h2 class="panel-title">PERSONA</h2><p class="panel-note">Commander mode active. Switch to the friendly Athlete experience anytime — your data follows.</p><button class="btn wide mt" id="toAth">SWITCH TO ATHLETE MODE</button><button class="btn wide mt" id="reOnb">REDO ONBOARDING</button></section>');
+  swap.querySelector('#toAth').addEventListener('click',()=>{S.cfg.persona='athlete';save();tab='home';renderNav();render();toast('ATHLETE MODE')});
+  swap.querySelector('#reOnb').addEventListener('click',()=>showOnboarding());
+  view.appendChild(swap);
   // squad
   const sq=el('<section class="panel panel-pad"><h2 class="panel-title">SQUAD BOARD</h2>'+
     '<p class="panel-note">Import a teammate\'s exported backup to put them on the board. Local comparison — no server, no excuses about privacy.</p>'+
@@ -1742,7 +1765,7 @@ function viewData(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V9.0 · DUAL PERSONA — COMMANDER / ATHLETE · ONBOARDING · ADAPTIVE FEEDBACK</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V9.1 · COMMANDER IA REBUILD — 5 TABS (TODAY/FUEL/PILATES/PROGRESS/PROFILE)</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
@@ -1764,11 +1787,6 @@ function viewData(){
   dc.querySelector('#csvW').addEventListener('click',()=>dl('weights-'+today()+'.csv',csvWeights(),'text/csv'));
   view.appendChild(dc);
 
-  // recent sets
-  const recent=S.sets.slice(-20).reverse();
-  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">RECENT SETS</h2>'+
-    (recent.length?'<ul class="setlist">'+recent.map(s=>'<li><span class="sl-a">'+esc(s.blockId)+'</span><span class="sl-b">'+esc(s.exercise)+'</span><span class="num">'+(s.kg?s.kg+' kg × ':'')+s.reps+(s.rpe?' @ '+s.rpe:'')+(s.spd?' · '+s.spd:'')+'</span></li>').join('')+'</ul>'
-    :'<p class="empty">No sets on record. Open MISSION and put numbers on the board.</p>')+'</section>'));
 }
 function weightChart(){
   const data=S.weights.slice(-30);const W=320,H=110,pad=8;
@@ -1929,7 +1947,8 @@ function viewPilates(){
 
 /* ---------- HIIT ---------- */
 let hiit={running:false,phase:'READY',t:0,round:0,total:6,timer:null};
-function viewHiit(){
+function viewHiit(){viewHiitInto(view)}
+function viewHiitInto(view){
   if(S.missions.length<3){
     view.appendChild(el('<section class="panel lock"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'+
       '<div class="lock-title">BONUS BLOCK LOCKED</div>'+
