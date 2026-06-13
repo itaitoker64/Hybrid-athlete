@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V8.0.1 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V8.1 — Flow &amp; Power</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -177,8 +177,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .lock svg{color:var(--primary);margin-bottom:10px}
 .lock-title{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.16em;color:var(--fg)}
 
-.nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:100}
-.nav button{appearance:none;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:.14em;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;min-height:50px;transition:color .15s}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);padding:6px 2px calc(6px + env(safe-area-inset-bottom));z-index:100}
+
+.nav button{appearance:none;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;min-height:50px;transition:color .15s}
 .nav button.active{color:var(--primary)}
 .nav button svg{stroke:currentColor}
 
@@ -272,7 +273,7 @@ input::placeholder{color:#B9B6AA}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V8.0.1</span>
+      <span class="brand-sub">FLOW &amp; POWER · V8.1</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -301,6 +302,7 @@ input::placeholder{color:#B9B6AA}
   <button data-tab="vision" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>VISION</button>
   <button data-tab="data" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg>DATA</button>
   <button data-tab="hiit" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg>HIIT</button>
+  <button data-tab="pilates" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 18c3-6 13-6 16 0M7 11a5 5 0 0 1 10 0M12 4v3"/></svg>PILATES</button>
 </nav>
 
 <script>
@@ -814,7 +816,7 @@ function render(){
   if(liftDayToday()&&ml<WATER_TARGET)hb.appendChild(el('<div class="banner" role="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg><span>COMPOUND DAY. HYDRATION '+(ml/1000).toFixed(1)+' L — '+((WATER_TARGET-ml)/1000).toFixed(1)+' L SHORT OF 3.0 L. DRINK.</span></div>'));
   document.querySelectorAll('.nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-selected',b.dataset.tab===tab)});
   view.innerHTML='';
-  ({mission:viewMission,fuel:viewFuel,vision:viewVision,data:viewData,hiit:viewHiit})[tab]();
+  ({mission:viewMission,fuel:viewFuel,vision:viewVision,data:viewData,hiit:viewHiit,pilates:viewPilates})[tab]();
   save()}
 
 /* ---------- MISSION ---------- */
@@ -1369,7 +1371,7 @@ function viewData(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V8.0.1 · FIREBASE PROJECT training2026 WIRED IN — ACCOUNTS LIVE</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V8.1 · PILATES MATWORK REPERTOIRE TAB (3 LEVELS, CLASSICAL ORDER)</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
@@ -1483,6 +1485,77 @@ function transitionPanel(){
       if(d)d.textContent=fmtClock(left)},250)}));
   return p}
 
+
+/* ---------- PILATES MATWORK (V8.1) ---------- */
+const PILATES={
+ beginner:{label:'BEGINNER — יסודות',items:[
+  {n:'The Hundred',he:'המאה',reps:'100 ספירות (10 נשימות)'},
+  {n:'Roll Up',he:'גלגול מעלה',reps:'5–8'},
+  {n:'Single Leg Circles',he:'מעגלי רגל בודדת',reps:'5 לכל כיוון × 2 רגליים'},
+  {n:'Rolling Like a Ball',he:'גלגול ככדור',reps:'6–8'},
+  {n:'Single Leg Stretch',he:'מתיחת רגל בודדת',reps:'8–10 לכל רגל'},
+  {n:'Double Leg Stretch',he:'מתיחת שתי רגליים',reps:'6–8'},
+  {n:'Spine Stretch Forward',he:'מתיחת עמוד שדרה קדימה',reps:'3–5'}]},
+ intermediate:{label:'INTERMEDIATE — ביניים',items:[
+  {n:'Single Straight Leg Stretch (Scissors)',he:'מספריים',reps:'6–8 לכל רגל'},
+  {n:'Double Straight Leg Stretch',he:'מתיחת רגליים ישרות',reps:'6–10'},
+  {n:'Criss-Cross',he:'אופניים / הצלבה',reps:'6–8 לכל צד'},
+  {n:'Open Leg Rocker',he:'נדנדה ברגליים פתוחות',reps:'6'},
+  {n:'Corkscrew',he:'חולץ פקקים',reps:'3 לכל כיוון'},
+  {n:'Saw',he:'מסור',reps:'3–5 לכל צד'},
+  {n:'Swan / Swan Dive',he:'ברבור',reps:'4–6'},
+  {n:'Single Leg Kick',he:'בעיטת רגל בודדת',reps:'4–6 לכל רגל'},
+  {n:'Double Leg Kick',he:'בעיטת שתי רגליים',reps:'4–6'},
+  {n:'Neck Pull',he:'משיכת צוואר',reps:'4–6'},
+  {n:'Side Kick Series',he:'סדרת בעיטות צד',reps:'8–10 לכל תנועה'},
+  {n:'Teaser (1)',he:'טיזר ראשון',reps:'3–5'},
+  {n:'Seal',he:'כלב ים',reps:'6–8'}]},
+ advanced:{label:'ADVANCED — מתקדם',items:[
+  {n:'Jackknife',he:'אולר',reps:'3–5'},
+  {n:'Teaser (2 & 3)',he:'טיזר שני ושלישי',reps:'3–5'},
+  {n:'Hip Circles / Hip Twist',he:'מעגלי ירך',reps:'3 לכל כיוון'},
+  {n:'Swimming',he:'שחייה',reps:'20–30 ספירות'},
+  {n:'Leg Pull Front',he:'משיכת רגל קדמית',reps:'3–5 לכל רגל'},
+  {n:'Leg Pull Back',he:'משיכת רגל אחורית',reps:'3–5 לכל רגל'},
+  {n:'Kneeling Side Kick',he:'בעיטת צד בכריעה',reps:'6–8 לכל צד'},
+  {n:'Side Bend / Twist',he:'כיפוף צד',reps:'3–5 לכל צד'},
+  {n:'Boomerang',he:'בומרנג',reps:'4–6'},
+  {n:'Crab',he:'סרטן',reps:'6'},
+  {n:'Rocking',he:'התנדנדות',reps:'6–8'},
+  {n:'Control Balance',he:'איזון שליטה',reps:'3–5 לכל רגל'},
+  {n:'Push Up (Pilates)',he:'שכיבת סמיכה פילאטיס',reps:'3–5'}]}
+};
+function viewPilates(){
+  view.appendChild(el('<div class="orders">PILATES MATWORK · רפרטואר קלאסי של ג\u05f3וזף · סדר מקורי · נשימה מבוקרת · מרכז (Powerhouse) פעיל לאורך כל תרגיל</div>'));
+  const order=['beginner','intermediate','advanced'];
+  order.forEach((lvl,li)=>{
+    const L=PILATES[lvl];
+    const sec=el('<section class="panel"></section>');
+    sec.appendChild(el('<header class="block-head"><div class="block-id" aria-hidden="true">'+(li+1)+'</div>'+
+      '<div class="block-meta"><h2>'+esc(L.label)+'</h2><span class="station">'+L.items.length+' תרגילים</span></div></header>'));
+    const ol=el('<ol style="list-style:none;margin:0;padding:0"></ol>');
+    L.items.forEach((ex,i)=>{
+      const key='pil.'+lvl+'.'+i;
+      const done=S.pilates&&S.pilates[key];
+      const li2=el('<li class="exercise" style="cursor:pointer">'+
+        '<div class="ex-line">'+
+        '<span class="ex-index">'+(i+1)+'</span>'+
+        '<span class="ex-name">'+esc(ex.n)+'</span>'+
+        '<span class="ex-tag '+(lvl==='beginner'?'':lvl==='advanced'?'core':'')+'">'+(lvl==='beginner'?'L1':lvl==='intermediate'?'L2':'L3')+'</span>'+
+        '<span class="ex-target num">'+esc(ex.reps)+'</span>'+
+        '<span class="ex-last" style="color:var(--muted)">'+esc(ex.he)+'</span>'+
+        '</div>'+
+        '<div class="ex-actions" style="margin-top:8px"><button class="btn sm '+(done?'success':'')+'" type="button">'+(done?'\u2713 הושלם היום':'סמן כהושלם')+'</button></div></li>');
+      li2.querySelector('button').addEventListener('click',()=>{
+        S.pilates=S.pilates||{};
+        if(S.pilates[key]===today())delete S.pilates[key];else S.pilates[key]=today();
+        save();buzz(30);render()});
+      ol.appendChild(li2)});
+    sec.appendChild(ol);view.appendChild(sec)});
+  const doneToday=Object.values(S.pilates||{}).filter(d=>d===today()).length;
+  view.appendChild(el('<p class="footrule">הושלמו היום: '+doneToday+' תרגילים. הרפרטואר הקלאסי מתורגל לפי הסדר — איכות תנועה ושליטה לפני כמות. עצור בכאב חד או בלחץ על הצוואר/גב תחתון.</p>'));
+}
+
 /* ---------- HIIT ---------- */
 let hiit={running:false,phase:'READY',t:0,round:0,total:6,timer:null};
 function viewHiit(){
@@ -1534,7 +1607,7 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.s
 function applyDefaults(){
   S.missionLog=S.missionLog||[];S.hiitLog=S.hiitLog||[];S.readiness=S.readiness||{};S.templates=S.templates||[];
   S.measures=S.measures||[];S.photos=S.photos||[];S.plannedWk=S.plannedWk||[];S.squadBoard=S.squadBoard||[];
-  S.swaps=S.swaps||{};S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
+  S.swaps=S.swaps||{};S.pilates=S.pilates||{};S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
   if(!S.startDate)S.startDate=S.weights.length?S.weights[0].date:today()}
 async function bootApp(){booted=false;
   const loaded=await loadState();
