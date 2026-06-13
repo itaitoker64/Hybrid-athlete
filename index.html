@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V9.1 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V9.2 — Flow &amp; Power</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -258,6 +258,18 @@ table.squad .you{color:var(--primary)}
 input::placeholder{color:#B9B6AA}
 .empty{font-style:italic;font-family:var(--display)}
 
+/* ===== NEXT STEP BANNER (V9.2) ===== */
+.nextstep{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;border-radius:16px;background:var(--primary);color:var(--on-primary);padding:16px 18px;margin-bottom:6px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.nextstep:active{opacity:.9}
+.nextstep .ns-num{flex:none;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--mono);font-size:15px}
+.nextstep .ns-txt{flex:1}
+.nextstep .ns-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.22em;opacity:.85}
+.nextstep .ns-act{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.15;margin-top:2px}
+.nextstep .ns-arrow{flex:none;font-size:22px;font-weight:700}
+.nextstep.done{background:var(--success)}
+body.athlete .nextstep{color:#fff}
+body.athlete .nextstep .ns-act{font-family:var(--display)}
+
 /* ===== ATHLETE PERSONA THEME (V9) ===== */
 body.athlete{--bg:#0E1116;--surface:#171B22;--surface2:#1F242E;--border:#2A313D;--fg:#F3F5F8;--muted:#9AA4B2;--primary:#4F8EF7;--on-primary:#0E1116;--primary-soft:rgba(79,142,247,.14);--success:#34D399;--danger:#F87171;--display:'Source Serif 4',Georgia,serif;--body:'Inter',system-ui,sans-serif}
 body.athlete .brand-sub{color:var(--primary)}
@@ -317,7 +329,7 @@ body.athlete .brand-sub{color:var(--primary)}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V9.1</span>
+      <span class="brand-sub">FLOW &amp; POWER · V9.2</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -986,6 +998,7 @@ function viewHome(){
   const st=athStats();const u=FB.user&&FB.user.email?FB.user.email.split('@')[0]:'athlete';
   const hr=new Date().getHours();const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
   view.appendChild(el('<div class="ath-hello">'+greet+', '+esc(u.charAt(0).toUpperCase()+u.slice(1))+' \ud83d\udc4b</div>'));
+  const _ns=nextStepBanner();if(_ns)view.appendChild(_ns);
   view.appendChild(el('<div class="ath-stat-row">'+
     '<div class="ath-stat"><b>\ud83d\udd25 '+st.streak+'</b><span>day streak</span></div>'+
     '<div class="ath-stat"><b>\u26a1 '+(st.energy!=null?st.energy+'/10':'\u2014')+'</b><span>energy</span></div>'+
@@ -1157,6 +1170,31 @@ function viewProfileAth(){
   view.appendChild(out);
 }
 
+/* ============ NEXT STEP ENGINE (V9.2) ============ */
+function nextStep(){
+  // returns {n,label,action,go} or null when day complete
+  const wRow=S.weights.some(w=>w.date===today());
+  const ready=!!todayReadiness();
+  const brief=!!(S.briefing&&S.briefing.date===today());
+  const missionDone=missionCompleteToday();
+  const ath=persona()==='athlete';
+  if(!wRow) return {n:1,label:'START HERE',action:ath?'Log this morning\'s weight':'LOG MORNING WEIGH-IN',go:()=>{if(ath){tab='profile'}else{tab='data'}render();flashFind('#wIn,#wLog');}};
+  if(!ready) return {n:2,label:'NEXT',action:ath?'Quick check-in: how do you feel?':'READINESS CHECK-IN',go:()=>{if(ath){tab='home';athFeel()}else{tab='mission';render();flashFind('#rGo');}}};
+  if(!brief) return {n:3,label:'NEXT',action:ath?'Build today\'s workout':'REQUEST TODAY\'S BRIEFING',go:()=>{if(ath){tab='home';athFeel()}else{tab='mission';render();flashFind('#bqGo');}}};
+  if(!missionDone) return {n:4,label:'NOW',action:ath?'Start your workout':'START THE MISSION CLOCK',go:()=>{if(ath){tab='workout'}else{tab='mission';render();flashFind('#clockToggle');}}};
+  return {n:5,label:'DONE',action:ath?'All done today — great work 👏':'DAY COMPLETE. RECOVER.',done:true,go:null};
+}
+function flashFind(sel){setTimeout(()=>{const e=document.querySelector(sel.split(',')[0]);if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'center'});},120)}
+function nextStepBanner(){
+  const ns=nextStep();if(!ns)return null;
+  const b=el('<button class="nextstep'+(ns.done?' done':'')+'">'+
+    '<div class="ns-num">'+(ns.done?'✓':ns.n)+'</div>'+
+    '<div class="ns-txt"><div class="ns-lbl">'+esc(ns.label)+'</div><div class="ns-act">'+esc(ns.action)+'</div></div>'+
+    (ns.go?'<div class="ns-arrow">→</div>':'')+'</button>');
+  if(ns.go)b.addEventListener('click',ns.go);
+  return b;
+}
+
 /* ============ RENDER ============ */
 let tab='mission';
 const view=$('#view');
@@ -1192,6 +1230,7 @@ function render(){
 
 /* ---------- MISSION ---------- */
 function viewMission(){
+  const _ns=nextStepBanner();if(_ns)view.appendChild(_ns);
   const m=meso();
   // readiness check-in
   const r=todayReadiness();
@@ -1765,7 +1804,7 @@ function viewProfileCmd(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V9.1 · COMMANDER IA REBUILD — 5 TABS (TODAY/FUEL/PILATES/PROGRESS/PROFILE)</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V9.2 · NEXT-STEP GUIDANCE BANNER (BOTH PERSONAS) — DUMB-PROOFED</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
