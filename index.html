@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V9.2 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V9.3 — Flow &amp; Power</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -329,7 +329,7 @@ body.athlete .brand-sub{color:var(--primary)}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V9.2</span>
+      <span class="brand-sub">FLOW &amp; POWER · V9.3</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -995,32 +995,50 @@ function athToday(){
     level:(S.cfg&&S.cfg.exp)||'Intermediate',color:C.color,note:null,ready:false};
 }
 function viewHome(){
-  const st=athStats();const u=FB.user&&FB.user.email?FB.user.email.split('@')[0]:'athlete';
+  const u=FB.user&&FB.user.email?FB.user.email.split('@')[0]:'there';
   const hr=new Date().getHours();const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
-  view.appendChild(el('<div class="ath-hello">'+greet+', '+esc(u.charAt(0).toUpperCase()+u.slice(1))+' \ud83d\udc4b</div>'));
-  const _ns=nextStepBanner();if(_ns)view.appendChild(_ns);
-  view.appendChild(el('<div class="ath-stat-row">'+
-    '<div class="ath-stat"><b>\ud83d\udd25 '+st.streak+'</b><span>day streak</span></div>'+
-    '<div class="ath-stat"><b>\u26a1 '+(st.energy!=null?st.energy+'/10':'\u2014')+'</b><span>energy</span></div>'+
-    '<div class="ath-stat"><b>\ud83d\udcc5 '+st.wk+'/'+st.goal+'</b><span>this week</span></div></div>'));
-  const T=athToday();
-  const hero=el('<div class="ath-hero"><span class="kind" style="background:'+T.color+'">TODAY\u2019S WORKOUT</span>'+
-    '<h2>'+esc(T.kind)+'</h2><div class="meta">'+esc(T.sub)+' \u00b7 '+esc(T.dur)+' \u00b7 '+esc(T.level)+'</div>'+
-    (T.note?'<p style="color:var(--muted);font-size:14px;margin:0 0 14px">'+esc(T.note)+'</p>':'')+
-    '<button class="ath-cta">\u25b6 Start Workout</button></div>');
-  hero.querySelector('.ath-cta').addEventListener('click',()=>{
-    if(!todayReadiness()){athFeel();return}
-    if(!(S.briefing&&S.briefing.date===today())){athGenerate();return}
-    tab='workout';render();
+  view.appendChild(el('<div class="ath-hello">'+greet+', '+esc(u.charAt(0).toUpperCase()+u.slice(1))+'</div>'));
+  view.appendChild(el('<div class="ob-sub">What do you want to do today?</div>'));
+
+  S._pick=S._pick||{type:null,time:null,energy:null};
+
+  // 1. TYPE
+  view.appendChild(el('<div class="ath-q">1 · Pick your workout</div>'));
+  const typeRow=el('<div class="pickrow"></div>');
+  const myTypes=(S.cfg&&S.cfg.types&&S.cfg.types.length?S.cfg.types:['strength','running','pilates','hiit']);
+  myTypes.forEach(k=>{const C=CATS[k];if(!C)return;
+    const b=el('<button class="pick'+(S._pick.type===k?' sel':'')+'">'+C.emoji+' '+C.label+'</button>');
+    b.addEventListener('click',()=>{S._pick.type=k;viewHomeRefresh()});
+    typeRow.appendChild(b)});
+  view.appendChild(typeRow);
+
+  // 2. TIME
+  view.appendChild(el('<div class="ath-q">2 · How much time?</div>'));
+  const timeRow=el('<div class="pickrow"></div>');
+  [15,30,45,60].forEach(t=>{const b=el('<button class="pick'+(S._pick.time===t?' sel':'')+'">'+(t===60?'60+':t)+' min</button>');
+    b.addEventListener('click',()=>{S._pick.time=t;viewHomeRefresh()});timeRow.appendChild(b)});
+  view.appendChild(timeRow);
+
+  // 3. ENERGY
+  view.appendChild(el('<div class="ath-q">3 · How’s your energy?</div>'));
+  const enRow=el('<div class="pickrow"></div>');
+  [['\ud83d\ude34 Low',35],['\ud83d\ude42 Okay',65],['\u26a1 High',90]].forEach(([lab,sc])=>{
+    const b=el('<button class="pick'+(S._pick.energy===sc?' sel':'')+'">'+lab+'</button>');
+    b.addEventListener('click',()=>{S._pick.energy=sc;viewHomeRefresh()});enRow.appendChild(b)});
+  view.appendChild(enRow);
+
+  // GO
+  const ready=S._pick.type&&S._pick.time&&S._pick.energy;
+  const go=el('<button class="ath-cta" style="margin-top:22px"'+(ready?'':' disabled')+'>Show my workout</button>');
+  if(ready)go.addEventListener('click',()=>{
+    const feel=S._pick.energy,time=S._pick.time;
+    const sleep=feel>=80?8:feel>=50?7:5,sore=feel>=80?1:feel>=50?2:4,stress=feel>=80?1:2;
+    S.readiness[today()]={sleep,sore,stress,rhr:null,score:scoreReadiness(sleep,sore,stress)};
+    S._focusCat=S._pick.type;save();athGenerate(time);
   });
-  view.appendChild(hero);
-  view.appendChild(el('<div class="ath-q">Alternatives</div>'));
-  [['\ud83c\udfc3','Easy Run','20 min','running'],['\ud83e\uddd8','Recovery Pilates','15 min','pilates']].forEach(([e,n,d,k])=>{
-    const a=el('<div class="ath-alt"><div class="emoji">'+e+'</div><div class="txt"><b>'+n+'</b><span>'+d+'</span></div><button class="btn sm">Start</button></div>');
-    a.querySelector('button').addEventListener('click',()=>{if(k==='pilates'){tab='workout';S._focusCat='pilates'}else{tab='workout';S._focusCat='running'}render()});
-    view.appendChild(a);
-  });
+  view.appendChild(go);
 }
+function viewHomeRefresh(){view.innerHTML='';viewHome()}
 function athFeel(){
   view.innerHTML='';
   view.appendChild(el('<div class="ath-hello">Quick check-in</div>'));
@@ -1054,7 +1072,8 @@ function athGenerate(time){
 }
 async function requestBriefingAthlete(time){
   try{
-    const r=await claudeText(COACH_DIRECTIVES+'\n\nTONE: warm, encouraging, plain language for a general fitness user (not military).\n\nDATA FEED:\n'+buildFeed(time));
+    const want=S._focusCat?('\n\nUSER REQUESTED ACTIVITY TODAY: '+(CATS[S._focusCat]?CATS[S._focusCat].label:S._focusCat)+'. Build the session around this.'):'';
+    const r=await claudeText(COACH_DIRECTIVES+'\n\nTONE: warm, encouraging, plain language for a general fitness user (not military).'+want+'\n\nDATA FEED:\n'+buildFeed(time));
     if(!r.coach_note||!r.protocol_type)throw new Error('schema');
     S.briefing={date:today(),time,r};save();tab='workout';render();
   }catch(e){
@@ -1804,7 +1823,7 @@ function viewProfileCmd(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V9.2 · NEXT-STEP GUIDANCE BANNER (BOTH PERSONAS) — DUMB-PROOFED</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V9.3 · ATHLETE HOME SIMPLIFIED — 3-TAP (TYPE/TIME/ENERGY) → WORKOUT</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
