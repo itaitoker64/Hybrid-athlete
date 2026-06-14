@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V9.3 — Flow &amp; Power</title>
+<title>HYBRID ATHLETE V9.4 — Flow &amp; Power</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -329,7 +329,7 @@ body.athlete .brand-sub{color:var(--primary)}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V9.3</span>
+      <span class="brand-sub">FLOW &amp; POWER · V9.4</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -1083,18 +1083,20 @@ async function requestBriefingAthlete(time){
 }
 function viewPlan(){
   view.appendChild(el('<div class="ath-hello">Your week</div>'));
-  view.appendChild(el('<div class="ob-sub">Tap Adjust if life happens \u2014 your coach reshuffles.</div>'));
   const types=(S.cfg&&S.cfg.types&&S.cfg.types.length?S.cfg.types:['strength','running','pilates','hiit']);
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const wkDays=(S.cfg&&S.cfg.days)||4;
+  const todayIdx=(new Date().getDay()+6)%7; // Mon=0
   days.forEach((d,i)=>{
-    if(i>=wkDays){view.appendChild(el('<div class="day-card" style="opacity:.5"><div class="dow">'+d+'</div><div class="txt">Rest \u00b7 recovery</div></div>'));return}
+    const isToday=i===todayIdx;
+    if(i>=wkDays){view.appendChild(el('<div class="day-card" style="opacity:.45'+(isToday?';border-color:var(--primary)':'')+'"><div class="dow">'+d+'</div><div class="txt">Rest day</div>'+(isToday?'<span style="color:var(--primary);font-size:11px;font-weight:700">TODAY</span>':'')+'</div>'));return}
     const k=types[i%types.length];const C=CATS[k]||CATS.strength;
-    view.appendChild(el('<div class="day-card"><div class="dow">'+d+'</div><div class="cat-dot" style="background:'+C.color+'"></div>'+
-      '<div class="txt" style="flex:1"><b>'+C.emoji+' '+C.label+'</b><span style="display:block;font-size:12px;color:var(--muted)">'+((S.cfg&&S.cfg.dur)||30)+' min \u00b7 '+((S.cfg&&S.cfg.exp)||'Intermediate')+'</span></div></div>'));
+    view.appendChild(el('<div class="day-card"'+(isToday?' style="border-color:var(--primary);border-width:2px"':'')+'><div class="dow">'+d+'</div><div class="cat-dot" style="background:'+C.color+'"></div>'+
+      '<div class="txt" style="flex:1"><b>'+C.emoji+' '+C.label+'</b><span style="display:block;font-size:12px;color:var(--muted)">'+((S.cfg&&S.cfg.dur)||30)+' min</span></div>'+
+      (isToday?'<span style="color:var(--primary);font-size:11px;font-weight:700">TODAY</span>':'')+'</div>'));
   });
-  const adj=el('<button class="ath-cta" style="margin-top:16px;background:var(--surface2);color:var(--fg)">\ud83d\udd04 Adjust Plan</button>');
-  adj.addEventListener('click',()=>{tab='home';athFeel()});
+  const adj=el('<button class="ath-cta" style="margin-top:18px">Start today\u2019s workout</button>');
+  adj.addEventListener('click',()=>{tab='home';render()});
   view.appendChild(adj);
 }
 function viewWorkout(){
@@ -1158,38 +1160,38 @@ function viewProgress(){
   view.appendChild(el('<div class="ath-hello">Your progress</div>'));
   const totalMin=S.missionLog.reduce((a,m)=>a+Math.round((m.timeUsed||0)/60),0)+(S.feedback?S.feedback.length*((S.cfg&&S.cfg.dur)||30):0);
   const cons=Math.min(100,Math.round(missionsLast7()/((S.cfg&&S.cfg.days)||4)*100));
-  const strengthN=S.sets.length, runN=0;
+  // two numbers that matter, big
   view.appendChild(el('<div class="score-grid">'+
-    '<div class="score-card"><div class="ring" style="color:'+CATS.strength.color+'">'+S.missions.length+'</div><div class="lbl">\ud83d\udcaa Workouts done</div></div>'+
-    '<div class="score-card"><div class="ring" style="color:'+CATS.running.color+'">'+totalMin+'</div><div class="lbl">\u23f1 Total minutes</div></div>'+
-    '<div class="score-card"><div class="ring" style="color:#F59E0B">'+streakDays()+'</div><div class="lbl">\ud83d\udd25 Day streak</div></div>'+
-    '<div class="score-card"><div class="ring" style="color:'+CATS.pilates.color+'">'+cons+'%</div><div class="lbl">\ud83d\udcc8 Consistency</div></div></div>'));
+    '<div class="score-card"><div class="ring" style="color:'+CATS.strength.color+';font-size:40px">'+S.missions.length+'</div><div class="lbl">workouts done</div></div>'+
+    '<div class="score-card"><div class="ring" style="color:#F59E0B;font-size:40px">'+streakDays()+'</div><div class="lbl">day streak</div></div></div>'));
+  // quiet secondary line
+  view.appendChild(el('<p class="ob-sub" style="margin-top:12px;text-align:center">'+totalMin+' total minutes \u00b7 '+cons+'% consistency this week</p>'));
+  // achievements as one tidy block
   view.appendChild(el('<div class="ath-q">Achievements</div>'));
-  const achs=[['\ud83c\udfc6 First workout',S.missions.length>=1],['\ud83c\udfc6 10 workouts',S.missions.length>=10],['\ud83c\udfc6 7-day streak',streakDays()>=7],['\ud83c\udfc6 20 sessions',S.missions.length>=20]];
-  achs.forEach(([lab,on])=>view.appendChild(el('<div class="ach'+(on?'':' locked')+'">'+(on?'\u2705':'\ud83d\udd12')+' '+lab.replace('\ud83c\udfc6 ','')+'</div>')));
+  const achs=[['First workout',S.missions.length>=1],['10 workouts',S.missions.length>=10],['7-day streak',streakDays()>=7],['20 sessions',S.missions.length>=20]];
+  achs.forEach(([lab,on])=>view.appendChild(el('<div class="ach'+(on?'':' locked')+'">'+(on?'\ud83c\udfc6':'\ud83d\udd12')+' '+lab+'</div>')));
 }
 function viewProfileAth(){
   view.appendChild(el('<div class="ath-hello">Profile</div>'));
   const C=S.cfg||{};
   view.appendChild(el('<div class="ath-hero"><div class="meta">Signed in as</div><h2 style="font-size:18px">'+esc(FB.user&&FB.user.email||'Local athlete')+'</h2>'+
-    '<div style="color:var(--muted);font-size:14px;margin-top:8px">Goals: '+esc((C.goals2||[]).join(', ')||'\u2014')+'<br>Workouts: '+esc((C.types||[]).map(k=>CATS[k]?CATS[k].label:k).join(', ')||'\u2014')+'<br>Equipment: '+esc((C.equip||[]).join(', ')||'\u2014')+'<br>'+(C.days||4)+' days/week \u00b7 '+(C.dur||30)+' min</div></div>'));
-  const reon=el('<button class="ath-cta" style="margin-top:14px;background:var(--surface2);color:var(--fg)">Redo setup</button>');
-  reon.addEventListener('click',()=>{showOnboarding()});view.appendChild(reon);
-  const swap=el('<button class="ath-cta" style="margin-top:10px;background:var(--surface2);color:var(--fg)">Switch to Commander mode</button>');
-  swap.addEventListener('click',()=>{S.cfg.persona='commander';save();tab='mission';renderNav();render();toast('COMMANDER MODE ENGAGED')});
-  view.appendChild(swap);
-  // AI key reuse
-  const keyWrap=el('<div class="ath-hero" style="margin-top:14px"><div class="meta">AI Coach key (free Gemini or Anthropic)</div>'+
+    '<div style="color:var(--muted);font-size:14px;margin-top:8px">'+esc((C.types||[]).map(k=>CATS[k]?CATS[k].emoji+' '+CATS[k].label:k).join('  '))+'<br>'+(C.days||4)+' days/week \u00b7 '+(C.dur||30)+' min preferred</div></div>'));
+  // AI key (kept — needed for workouts)
+  const keyWrap=el('<div class="ath-hero" style="margin-top:12px"><div class="meta">AI Coach key</div>'+
     '<input id="athKey" type="password" placeholder="AIza\u2026 or sk-ant-\u2026" style="margin-top:8px" value="'+esc(S.apiKey||'')+'">'+
     '<button class="ath-cta" id="athKeySave" style="margin-top:10px">Save key</button></div>');
   keyWrap.querySelector('#athKeySave').addEventListener('click',()=>{S.apiKey=keyWrap.querySelector('#athKey').value.trim();save();toast('Key saved')});
   view.appendChild(keyWrap);
-  const out=el('<button class="ath-cta" style="margin-top:10px;background:transparent;color:var(--danger);border:1px solid var(--danger)">Sign out</button>');
+  // quiet secondary actions
+  const reon=el('<button class="ath-cta" style="margin-top:12px;background:var(--surface2);color:var(--fg)">Redo setup</button>');
+  reon.addEventListener('click',()=>{showOnboarding()});view.appendChild(reon);
+  const swap=el('<button class="ath-cta" style="margin-top:8px;background:var(--surface2);color:var(--fg)">Switch to Commander mode</button>');
+  swap.addEventListener('click',()=>{S.cfg.persona='commander';save();tab='mission';renderNav();render();toast('COMMANDER MODE ENGAGED')});
+  view.appendChild(swap);
+  const out=el('<button class="ath-cta" style="margin-top:8px;background:transparent;color:var(--danger);border:1px solid var(--danger)">Sign out</button>');
   out.addEventListener('click',()=>{if(FB.auth){FB.auth.signOut().then(()=>location.reload())}else location.reload()});
   view.appendChild(out);
 }
-
-/* ============ NEXT STEP ENGINE (V9.2) ============ */
 function nextStep(){
   // returns {n,label,action,go} or null when day complete
   const wRow=S.weights.some(w=>w.date===today());
@@ -1823,7 +1825,7 @@ function viewProfileCmd(){
   // war mode + exports
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
     '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V9.3 · ATHLETE HOME SIMPLIFIED — 3-TAP (TYPE/TIME/ENERGY) → WORKOUT</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V9.4 · ATHLETE PLAN/PROGRESS/PROFILE SIMPLIFIED</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
