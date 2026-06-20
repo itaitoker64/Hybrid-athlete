@@ -425,6 +425,22 @@ function currentProgram(){
     exercises:b.exercises.map((ex,i)=>{const k=S.profile+'.'+b.id+'.'+i;
       return S.swaps[k]?Object.assign({},ex,{name:S.swaps[k]}):ex})}))};
 }
+/* ----- TRAINING LOCATIONS + EQUIPMENT ----- */
+const GYM_DEFAULTS={
+  base:{label:'BASE GYM',equip:['Barbell + plates','Squat rack','Flat/incline bench','Cable machine','Dumbbells (full set)','Pull-up bar','Dip station']},
+  rooftop:{label:'ROOFTOP',equip:['Dumbbells up to 30 kg','Pull-up bar','Roman chair','Resistance bands','15-20 kg sandbag','Mat']}
+};
+function locLabel(p){return p==='scan'?((S.scanProgram&&S.scanProgram.label)||'SCANNED GYM'):(GYM_DEFAULTS[p]?GYM_DEFAULTS[p].label:'GYM')}
+function locEquip(p){
+  if(p==='scan')return (S.scanProgram&&S.scanProgram.equipment)||[];
+  return (S.gymEquip&&S.gymEquip[p])||(GYM_DEFAULTS[p]?GYM_DEFAULTS[p].equip.slice():[]);
+}
+function setLocEquip(p,arr){
+  if(p==='scan'){if(S.scanProgram)S.scanProgram.equipment=arr;return}
+  S.gymEquip=S.gymEquip||{};S.gymEquip[p]=arr;
+}
+function activeEquipText(){const e=locEquip(S.profile);return e.length?e.join(', '):'unspecified'}
+function parseEquip(str){return String(str||'').split(/[,\n]/).map(s=>s.trim()).filter(Boolean)}
 function currentKg(){return S.weights.length?S.weights[S.weights.length-1].kg:null}
 function dayN(){return S.nutrition[today()]||{kcal:0,protein:0,carbs:0,fat:0,meals:[]}}
 function epley(kg,reps){return reps>0&&reps<=12&&kg>0?Math.round(kg*(1+reps/30)):null}
@@ -634,7 +650,7 @@ function videoFrames(file,n){return new Promise((resolve,reject)=>{
   v.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('video'))}})}
 
 const MEAL_PROMPT='You are a tactical nutrition analyst. Estimate this meal. Respond ONLY with raw JSON, no markdown: {"name":"short meal name","calories":int,"protein_g":int,"carbs_g":int,"fat_g":int,"banned":bool,"banned_reason":"why or empty"} banned=true if it likely contains: '+BANNED+'. Estimate the visible portion realistically.';
-const GYM_PROMPT='You are a tactical strength coach AI. Identify usable equipment in this gym photo and build a full-body workout using ONLY detected equipment. Rules: exactly 4 blocks A-D; each block exactly 3 exercises back-to-back (1 UPPER + 1 LOWER + 1 CORE in that order); group each block by physical proximity. Respond ONLY raw JSON: {"equipment":["..."],"blocks":[{"id":"A","station":"...","exercises":[{"name":"...","target":"...","tag":"UPPER|LOWER|CORE"}]} x4]}';
+const GYM_PROMPT='You are a tactical strength coach AI. Identify every usable piece of equipment in this gym photo, then build a workout that serves the athlete CONTEXT below using ONLY the detected equipment. Rules: 3-4 blocks; each block exactly 3 exercises back-to-back (1 UPPER + 1 LOWER + 1 CORE in that order); group each block by physical proximity; match exercise selection and rep/time targets to the athlete\'s goal, experience, and available time. Respond ONLY raw JSON: {"equipment":["every detected item"],"blocks":[{"id":"A","station":"...","exercises":[{"name":"...","target":"reps/time","tag":"UPPER|LOWER|CORE"}]}]}';
 async function claudeText(prompt){return claudeMM([{type:'text',text:prompt}])}
 const COACH_DIRECTIVES='You are the Coach\'s Brain: an elite auto-regulating AI performance coach embedded in a training app. You do not set goals; the data feed provides them. Analyze the feed and adapt TODAY\'s training and nutrition. Directives: (1) RELENTLESS ADAPTABILITY: recalibrate instantly for high fatigue, poor sleep, limited time, or missed sessions - swap intensity or modality, shift the week, prevent overtraining while keeping the macro-goal alive. (2) DYNAMIC NUTRITION: no static plans - set today\'s kcal and macros to the energy demand of the workout you just assigned; rest/low days get less, hard days more; NEVER below the protein floor; respect banned foods; keep the trajectory aligned with the weight goal. (3) INTELLIGENT PROGRESSION: if recent history shows targets cleared easily, increase load, volume, or complexity for that pattern. (4) TONE: direct, concise, sharp, professional, encouraging; explain WHY so the user trusts the process. (5) SAFETY: respect listed injuries; very low readiness gets recovery, not heroics; never program through sharp or joint pain. HOUSE ARCHITECTURE when prescribing lifting: blocks of EXACTLY 3 exercises (1 UPPER + 1 LOWER + 1 CORE, in that order, zero rest inside the block, 60-90 s after), 2-4 blocks sized to available time, grouped by equipment proximity. Respond ONLY with raw JSON, no markdown, no preamble: {"coach_note":"2-3 sentences directly to the user acknowledging their state and explaining today\'s adjustment","protocol_type":"LIFT|RECOVERY|HIIT","blocks":[{"id":"A","station":"...","exercises":[{"name":"...","target":"reps/time","tag":"UPPER|LOWER|CORE"}]}],"recovery":["step"],"schedule_shift":"impact on next 2-3 days","fueling":{"kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0,"note":"short why"}} - include blocks only when protocol_type is LIFT; include recovery steps only for RECOVERY or HIIT.';
 function buildFeed(timeMin){
@@ -642,7 +658,7 @@ function buildFeed(timeMin){
   const ySets=S.sets.filter(s=>s.date===yest);
   const yTop=ySets.filter(s=>s.kg).sort((a,b)=>b.kg-a.kg).slice(0,3).map(s=>s.exercise+' '+s.kg+'x'+s.reps+(s.rpe?'@'+s.rpe:'')).join('; ')||'none logged';
   const planned=S.plannedWk.map(x=>DOW[x]).join(',')||'unspecified';
-  const env=S.profile==='base'?'Commercial gym: barbells, squat rack, cables, dip station, full dumbbells, pull-up bar':S.profile==='rooftop'?'Rooftop: dumbbells to 30 kg/hand, pull-up bar, Roman chair (back extensions only), resistance bands, 15-20 kg sandbag, mat':'Equipment from last AI plan: '+((S.scanProgram&&S.scanProgram.sub)||'unknown');
+  const env=locLabel(S.profile)+' — available equipment: '+activeEquipText()+'. Use ONLY this equipment for every prescribed set.';
   const st=stalledLifts();const m=meso();
   return '[USER_GOALS]: Target weight '+cfgT()+' kg (current '+(currentKg()!=null?currentKg().toFixed(1):'unknown')+' kg). '+S.cfg.goals+
   '\n[USER_CRITERIA & CONSTRAINTS]: Experience: '+S.cfg.exp+'. Injuries: '+S.cfg.injuries+'. Equipment today: '+env+'. Planned training days: '+planned+'. Nutrition settings: default ceiling '+cfgK()+' kcal, protein floor '+cfgP()+' g (hard floor). Banned: '+BANNED+'.'+
@@ -672,7 +688,7 @@ function briefingCard(){
     '<button class="btn wide" id="bfRegen">REGEN</button></div></section>');
   const dep=card.querySelector('#bfDeploy');
   if(dep)dep.addEventListener('click',()=>{
-    S.scanProgram={label:'COACH',sub:"COACH'S BRAIN — "+S.briefing.time+' MIN ADAPTED PROTOCOL',blocks:B.blocks.map(b=>({id:b.id,station:b.station||'',exercises:b.exercises}))};
+    S.scanProgram={label:'COACH',sub:"COACH'S BRAIN — "+S.briefing.time+' MIN ADAPTED PROTOCOL',blocks:B.blocks.map(b=>({id:b.id,station:b.station||'',exercises:b.exercises})),equipment:locEquip(S.profile)};
     S.profile='scan';toast('PROTOCOL DEPLOYED');render()});
   const fu=card.querySelector('#bfFuel');
   if(fu)fu.addEventListener('click',()=>{
@@ -870,7 +886,7 @@ const MONTH_DIRECTIVES='You are an elite coach building a 4-WEEK monthly periodi
 function buildPlanFeed(){
   const days=(S.cfg&&S.cfg.days)||4;const dur=(S.cfg&&S.cfg.dur)||45;
   const types=(S.cfg&&S.cfg.types&&S.cfg.types.length)?S.cfg.types.join(', '):'unspecified';
-  const env=S.profile==='base'?'Commercial gym (barbells, rack, cables, dumbbells, pull-up bar, dip station)':S.profile==='rooftop'?'Minimal kit: dumbbells to 30 kg, pull-up bar, bands, 15-20 kg sandbag, mat':'Custom/AI-scanned equipment';
+  const env=locLabel(S.profile)+' ('+activeEquipText()+')';
   return '[GOAL]: Target weight '+cfgT()+' kg (current '+(currentKg()!=null?currentKg().toFixed(1):'unknown')+' kg). '+((S.cfg&&S.cfg.goals)||'general athleticism')+
     '\n[ATHLETE]: Experience '+((S.cfg&&S.cfg.exp)||'intermediate')+'. Injuries/limits: '+((S.cfg&&S.cfg.injuries)||'none')+'. Preferred activities: '+types+'. Wants '+days+' training days/week, ~'+dur+' min/session. Equipment: '+env+'.'+
     '\n[HISTORY]: '+missionsLast7()+' sessions logged last 7 days. Stalled lifts: '+(stalledLifts().join(', ')||'none')+'. Current mesocycle week '+meso().pos+' of 4.';
@@ -1091,6 +1107,7 @@ function viewMission(){
   seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{S.profile=b.dataset.p;render()}));
   view.appendChild(seg);
   view.appendChild(el('<p class="env-sub">'+esc(p.sub||'AI-BUILT FROM GYM SCAN')+'</p>'));
+  view.appendChild(gymPanel());
   view.appendChild(el('<div class="orders">ORDERS: 3 ROUNDS / BLOCK · ZERO REST INSIDE BLOCK · 60–90 S AFTER EX 3 ONLY · RPE 7–8</div>'));
   const sT=S.sets.filter(s=>s.date===today());
   if(sT.length)view.appendChild(el('<div class="orders good">SESSION SO FAR: '+sT.length+' SETS · '+(dayVolume(today())/1000).toFixed(1)+' T MOVED'+(avgRest(today())?' · AVG REST ~'+avgRest(today())+' S':'')+'</div>'));
@@ -1211,7 +1228,6 @@ function viewMission(){
   view.appendChild(el('<p class="footrule">Missions logged: '+S.missions.length+'. Sharp, joint-based, or new pain: stop the block and log it — that\'s a report, not an excuse.</p>'));
   // in-session AI tools (relocated from VISION — used DURING training)
   view.appendChild(el('<h3 class="sub">IN-SESSION TOOLS</h3>'));
-  view.appendChild(buildScanGym());
   view.appendChild(buildFormCheck());
   // HIIT bonus block entry (relocated from its own tab — post-lift option)
   view.appendChild(el('<h3 class="sub">BONUS BLOCK</h3>'));
@@ -1345,33 +1361,41 @@ function buildSnapMeal(){
     e.target.value=''});
   return meal;
 }
-function buildScanGym(){
+function gymPanel(){
+  const p=S.profile;const label=locLabel(p);const equip=locEquip(p);
   const scanI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>';
-  const gym=el('<section class="panel panel-pad"><h2 class="panel-title">'+scanI+'SCAN GYM</h2>'+
-    '<p class="panel-note">Photograph the training space. AI builds a zero-friction 4-block mission from ONLY detected equipment.</p>'+
+  const sec=el('<section class="panel panel-pad"><h2 class="panel-title">EQUIPMENT — '+esc(label)+'</h2>'+
+    '<p class="panel-note">'+(p==='scan'?'AI-scanned location. Re-scan to refresh its equipment.':'List what’s available here. The AI builds every set from this kit + your goals.')+'</p>'+
+    '<label class="f mt"><span>AVAILABLE EQUIPMENT (COMMA-SEPARATED)</span><input id="eqIn" value="'+esc(equip.join(', '))+'"'+(p==='scan'?' readonly':'')+'></label>'+
+    (p==='scan'?'':'<button class="btn wide mt" id="eqSave">SAVE EQUIPMENT</button>')+
     '<input type="file" accept="image/*" capture="environment" id="gymFile" hidden>'+
-    '<button class="btn primary wide mt">SCAN ENVIRONMENT</button><div id="gymRes"></div></section>');
-  gym.querySelector('.btn').addEventListener('click',()=>gym.querySelector('#gymFile').click());
-  gym.querySelector('#gymFile').addEventListener('change',async e=>{
+    '<button class="btn primary wide mt" id="scanBtn">'+scanI+'SCAN A NEW GYM</button>'+
+    '<div id="gymRes"></div></section>');
+  const save=sec.querySelector('#eqSave');
+  if(save)save.addEventListener('click',()=>{
+    setLocEquip(p,parseEquip(sec.querySelector('#eqIn').value));S.briefing=null;toast('EQUIPMENT SAVED — AI WILL USE IT');render()});
+  sec.querySelector('#scanBtn').addEventListener('click',()=>sec.querySelector('#gymFile').click());
+  sec.querySelector('#gymFile').addEventListener('change',async e=>{
     const f=e.target.files[0];if(!f)return;
-    const box=gym.querySelector('#gymRes');
-    box.innerHTML='<div class="vision-result"><span class="spin"></span>SCANNING EQUIPMENT...</div>';
+    const box=sec.querySelector('#gymRes');
+    box.innerHTML='<div class="vision-result"><span class="spin"></span>SCANNING EQUIPMENT &amp; BUILDING SETS...</div>';
     try{
       const b64=await fileToScaledB64(f,1024);
-      const r=await claudeMM([imgBlock(b64),{type:'text',text:GYM_PROMPT}]);
-      if(!r.blocks||r.blocks.length!==4)throw new Error('plan');
+      const r=await claudeMM([imgBlock(b64),{type:'text',text:GYM_PROMPT+'\n\nATHLETE CONTEXT (tailor the workout to this):\n'+buildPlanFeed()}]);
+      if(!r.blocks||!r.blocks.length)throw new Error('plan');
+      const eq=r.equipment||[];
       box.innerHTML='';
       const card=el('<div class="vision-result"><div class="vr-name">EQUIPMENT DETECTED</div>'+
-        '<p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin:6px 0 10px">'+esc((r.equipment||[]).join(' · '))+'</p>'+
-        r.blocks.map(b=>'<p style="font-size:13px;margin:4px 0"><b style="color:var(--primary)">'+esc(b.id)+'</b> — '+b.exercises.map(x=>esc(x.name)).join(' → ')+'</p>').join('')+
-        '<button class="btn success wide mt">DEPLOY AS TODAY\'S MISSION</button></div>');
+        '<p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin:6px 0 10px">'+esc(eq.join(' · '))+'</p>'+
+        r.blocks.map(b=>'<p style="font-size:13px;margin:4px 0"><b style="color:var(--primary)">'+esc(b.id)+'</b> — '+b.exercises.map(x=>esc(x.name)+(x.target?' '+esc(x.target):'')).join(' → ')+'</p>').join('')+
+        '<button class="btn success wide mt">USE THIS GYM &amp; PLAN</button></div>');
       card.querySelector('button').addEventListener('click',()=>{
-        S.scanProgram={label:'SCANNED',sub:'AI-BUILT FROM GYM SCAN — '+(r.equipment||[]).slice(0,4).join(', ').toUpperCase(),blocks:r.blocks};
-        S.profile='scan';tab='mission';render()});
+        S.scanProgram={label:'SCANNED GYM',sub:'AI-BUILT FROM GYM SCAN — '+eq.slice(0,4).join(', ').toUpperCase(),blocks:r.blocks,equipment:eq};
+        S.profile='scan';S.briefing=null;tab='mission';toast('GYM SAVED — TRAINING FROM ITS EQUIPMENT');render()});
       box.appendChild(card);
     }catch(err){visionErr(box,err)}
     e.target.value=''});
-  return gym;
+  return sec;
 }
 function buildFormCheck(){
   const camI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>';
@@ -1749,6 +1773,9 @@ function applyDefaults(){
   S.measures=S.measures||[];S.photos=S.photos||[];S.plannedWk=S.plannedWk||[];S.weekPlan=S.weekPlan||{};S.squadBoard=S.squadBoard||[];
   S.swaps=S.swaps||{};S.feedback=S.feedback||[];S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
   S.weekPlanNote=S.weekPlanNote||'';S.monthPlan=S.monthPlan||null;
+  S.gymEquip=S.gymEquip||{};
+  if(!S.gymEquip.base)S.gymEquip.base=GYM_DEFAULTS.base.equip.slice();
+  if(!S.gymEquip.rooftop)S.gymEquip.rooftop=GYM_DEFAULTS.rooftop.equip.slice();
   seedWeekPlan();
   if(!S.startDate)S.startDate=S.weights.length?S.weights[0].date:today()}
 async function bootApp(){booted=false;
