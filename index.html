@@ -289,6 +289,11 @@ input::placeholder{color:#B9B6AA}
 .plan-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--muted)}
 .plan-legend span{display:flex;align-items:center;gap:5px}
 .plan-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;border:1px solid var(--border)}
+.equip-list{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin-top:10px}
+.equip-item{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--fg);padding:7px 0;cursor:pointer}
+.equip-item input{width:20px;height:20px;flex:none;accent-color:var(--primary);margin:0}
+.equip-item span{line-height:1.2}
+@media (max-width:380px){.equip-list{grid-template-columns:1fr}}
 /* onboarding */
 .ob{position:fixed;inset:0;z-index:280;background:var(--bg);overflow-y:auto;padding:calc(24px + env(safe-area-inset-top)) 18px 24px}
 .ob-card{max-width:460px;margin:0 auto}
@@ -441,6 +446,27 @@ function setLocEquip(p,arr){
 }
 function activeEquipText(){const e=locEquip(S.profile);return e.length?e.join(', '):'unspecified'}
 function parseEquip(str){return String(str||'').split(/[,\n]/).map(s=>s.trim()).filter(Boolean)}
+// Master list of selectable equipment (checkboxes). Union of defaults, user-added, and whatever each location holds.
+const EQUIP_CATALOG=['Barbell + plates','Squat rack','Flat/incline bench','Cable machine','Dumbbells (full set)','Dumbbells up to 30 kg','Kettlebells','Pull-up bar','Dip station','Roman chair','Resistance bands','Sandbag','Mat','Smith machine','Leg press','Hack squat','Leg curl/extension','Lat pulldown','Seated row','EZ bar','Trap/hex bar','Glute-ham raise','TRX / suspension trainer','Medicine ball','Box / plyo box','Treadmill','Rowing machine','Assault/air bike'];
+function equipCatalog(){
+  const out=[],seen=new Set();
+  const add=arr=>(arr||[]).forEach(x=>{const k=String(x).trim();if(k&&!seen.has(k.toLowerCase())){seen.add(k.toLowerCase());out.push(k)}});
+  add(S.equipCatalog);add(EQUIP_CATALOG);add(locEquip('base'));add(locEquip('rooftop'));add(locEquip('scan'));
+  return out;
+}
+function equipChecked(p,item){return locEquip(p).some(c=>c.toLowerCase()===item.toLowerCase())}
+function toggleEquip(p,item,on){
+  let cur=locEquip(p).slice();
+  if(on){if(!cur.some(c=>c.toLowerCase()===item.toLowerCase()))cur.push(item)}
+  else cur=cur.filter(c=>c.toLowerCase()!==item.toLowerCase());
+  setLocEquip(p,cur);
+}
+function addCatalogItem(item){
+  item=String(item||'').trim();if(!item)return false;
+  S.equipCatalog=S.equipCatalog||[];
+  if(equipCatalog().some(c=>c.toLowerCase()===item.toLowerCase()))return false;
+  S.equipCatalog.push(item);return true;
+}
 function currentKg(){return S.weights.length?S.weights[S.weights.length-1].kg:null}
 function dayN(){return S.nutrition[today()]||{kcal:0,protein:0,carbs:0,fat:0,meals:[]}}
 function epley(kg,reps){return reps>0&&reps<=12&&kg>0?Math.round(kg*(1+reps/30)):null}
@@ -1364,17 +1390,26 @@ function buildSnapMeal(){
   return meal;
 }
 function gymPanel(){
-  const p=S.profile;const label=locLabel(p);const equip=locEquip(p);
+  const p=S.profile;const label=locLabel(p);
   const scanI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>';
+  const nOn=locEquip(p).length;
   const sec=el('<section class="panel panel-pad"><h2 class="panel-title">EQUIPMENT — '+esc(label)+'</h2>'+
-    '<p class="panel-note">List what’s available here, or scan it. The AI builds every set from this kit + your goals.</p>'+
-    '<label class="f mt"><span>AVAILABLE EQUIPMENT (COMMA-SEPARATED)</span><input id="eqIn" value="'+esc(equip.join(', '))+'"></label>'+
-    '<button class="btn wide mt" id="eqSave">SAVE EQUIPMENT</button>'+
+    '<p class="panel-note">Tick what’s available here ('+nOn+' selected). The AI builds every set from this kit + your goals.</p>'+
+    '<div class="equip-list" id="eqList"></div>'+
+    '<div class="row mt"><input id="eqAdd" placeholder="Add equipment…" aria-label="Add equipment"><button class="btn" id="eqAddBtn">ADD</button></div>'+
     '<input type="file" accept="image/*" capture="environment" id="gymFile" hidden>'+
     '<button class="btn primary wide mt" id="scanBtn">'+scanI+'SCAN THIS GYM</button>'+
     '<div id="gymRes"></div></section>');
-  sec.querySelector('#eqSave').addEventListener('click',()=>{
-    setLocEquip(p,parseEquip(sec.querySelector('#eqIn').value));S.briefing=null;toast('EQUIPMENT SAVED — AI WILL USE IT');render()});
+  const list=sec.querySelector('#eqList');
+  equipCatalog().forEach(item=>{
+    const lab=el('<label class="equip-item"><input type="checkbox"'+(equipChecked(p,item)?' checked':'')+'><span>'+esc(item)+'</span></label>');
+    lab.querySelector('input').addEventListener('change',ev=>{toggleEquip(p,item,ev.target.checked);S.briefing=null;save();
+      const note=sec.querySelector('.panel-note');if(note)note.textContent='Tick what’s available here ('+locEquip(p).length+' selected). The AI builds every set from this kit + your goals.';});
+    list.appendChild(lab);
+  });
+  const addItem=()=>{const v=sec.querySelector('#eqAdd').value;if(!v.trim())return;addCatalogItem(v);toggleEquip(p,v.trim(),true);S.briefing=null;save();render()};
+  sec.querySelector('#eqAddBtn').addEventListener('click',addItem);
+  sec.querySelector('#eqAdd').addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();addItem()}});
   sec.querySelector('#scanBtn').addEventListener('click',()=>sec.querySelector('#gymFile').click());
   sec.querySelector('#gymFile').addEventListener('change',async e=>{
     const f=e.target.files[0];if(!f)return;
@@ -1390,10 +1425,10 @@ function gymPanel(){
       const det=el('<div class="vision-result"><div class="vr-name">DETECTED — '+esc(label)+'</div>'+
         '<p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin:6px 0 10px">'+esc(eq.join(' · '))+'</p>'+
         '<div class="row"><button class="btn primary wide" id="eqReplace">REPLACE LIST</button><button class="btn wide" id="eqMerge">ADD TO LIST</button></div></div>');
-      det.querySelector('#eqReplace').addEventListener('click',()=>{setLocEquip(p,eq);S.briefing=null;toast('EQUIPMENT REPLACED');render()});
+      det.querySelector('#eqReplace').addEventListener('click',()=>{eq.forEach(addCatalogItem);setLocEquip(p,eq);S.briefing=null;toast('EQUIPMENT REPLACED');render()});
       det.querySelector('#eqMerge').addEventListener('click',()=>{
         const cur=locEquip(p);const add=eq.filter(x=>!cur.some(c=>c.toLowerCase()===x.toLowerCase()));
-        setLocEquip(p,cur.concat(add));S.briefing=null;toast(add.length+' ITEMS ADDED');render()});
+        eq.forEach(addCatalogItem);setLocEquip(p,cur.concat(add));S.briefing=null;toast(add.length+' ITEMS ADDED');render()});
       box.appendChild(det);
     }catch(err){visionErr(box,err)}
     e.target.value=''});
@@ -1843,6 +1878,7 @@ function applyDefaults(){
   S.swaps=S.swaps||{};S.feedback=S.feedback||[];S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
   S.weekPlanNote=S.weekPlanNote||'';S.monthPlan=S.monthPlan||null;
   S.gymEquip=S.gymEquip||{};
+  S.equipCatalog=S.equipCatalog||[];
   if(!S.gymEquip.base)S.gymEquip.base=GYM_DEFAULTS.base.equip.slice();
   if(!S.gymEquip.rooftop)S.gymEquip.rooftop=GYM_DEFAULTS.rooftop.equip.slice();
   seedWeekPlan();
