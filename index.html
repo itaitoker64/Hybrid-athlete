@@ -1433,18 +1433,38 @@ async function buildSpontaneous(box,want){
     content.push({type:'text',text:SPONT_PROMPT+'\n\nUSER REQUEST: '+((want||'').trim()||'none — coach chooses')+'\n\nATHLETE CONTEXT:\n'+buildPlanFeed()});
     const r=await claudeMM(content);
     if(!r.blocks||!r.blocks.length)throw new Error('plan');
-    box.innerHTML='';
-    const eq=r.equipment||[];
-    const card=el('<div class="vision-result"><div class="vr-name">'+esc(r.title||'SPONTANEOUS SESSION')+'</div>'+
-      (r.coach_note?'<p style="font-size:13px;margin:6px 0">'+esc(r.coach_note)+'</p>':'')+
-      (eq.length?'<p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin:4px 0 8px">'+esc(eq.join(' · '))+'</p>':'')+
-      r.blocks.map(b=>'<p style="font-size:13px;margin:4px 0"><b style="color:var(--primary)">'+esc(b.id)+'</b> — '+b.exercises.map(x=>esc(x.name)+(x.target?' '+esc(x.target):'')).join(' → ')+'</p>').join('')+
-      '<button class="btn success wide mt" id="spDeploy">START THIS WORKOUT</button></div>');
-    card.querySelector('#spDeploy').addEventListener('click',()=>{
-      S.scanProgram={label:r.title||'SPONTANEOUS',sub:'SPONTANEOUS SESSION'+(eq.length?' — '+eq.slice(0,4).join(', ').toUpperCase():''),blocks:r.blocks,equipment:eq};
-      S.profile='scan';S.briefing=null;spont.photos=[];spont._want='';tab='mission';toast('SESSION LIVE — LOG YOUR SETS');render()});
-    box.appendChild(card);
+    spontResultCard(box,r);
   }catch(e){box.innerHTML='<div class="vision-result"><div class="vr-flag">BUILD FAILED — '+uplinkMsg(e)+'</div></div>'}
+}
+function spontResultCard(box,r){
+  spont.result=r;box.innerHTML='';
+  const eq=r.equipment||[];
+  const wrap=el('<div class="vision-result"><div class="vr-name">'+esc(r.title||'SPONTANEOUS SESSION')+'</div>'+
+    (r.coach_note?'<p style="font-size:13px;margin:6px 0">'+esc(r.coach_note)+'</p>':'')+
+    (eq.length?'<p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin:4px 0 6px">'+esc(eq.join(' · '))+'</p>':'')+
+    '<p class="panel-note" style="margin:4px 0 0">Tweak anything below, then start — or regenerate for a different take.</p>'+
+    '<div id="spEdit"></div>'+
+    '<div class="row mt"><button class="btn wide" id="spRegen">↻ REGENERATE</button><button class="btn success wide" id="spDeploy">START THIS WORKOUT</button></div>'+
+    '<button class="btn ghost wide mt" id="spReshoot">RE-SHOOT — CLEAR PHOTOS</button></div>');
+  const edit=wrap.querySelector('#spEdit');
+  r.blocks.forEach((b,bi)=>{
+    const id=b.id||String.fromCharCode(65+bi);
+    const blk=el('<div style="margin-top:10px"><div style="font-family:var(--mono);font-size:11px;color:var(--primary);letter-spacing:.1em">BLOCK '+esc(id)+(b.station?' · '+esc(b.station):'')+'</div></div>');
+    (b.exercises||[]).forEach((x,xi)=>{
+      const row=el('<div class="row" style="margin-top:6px"><input class="spName" value="'+esc(x.name||'')+'" aria-label="Exercise" style="flex:2"><input class="spTarget" value="'+esc(x.target||'')+'" placeholder="reps/time" aria-label="Target" style="flex:1"></div>');
+      row.dataset.b=bi;row.dataset.x=xi;blk.appendChild(row);
+    });
+    edit.appendChild(blk);
+  });
+  wrap.querySelector('#spRegen').addEventListener('click',()=>buildSpontaneous(box,spont._want));
+  wrap.querySelector('#spReshoot').addEventListener('click',()=>{spont.photos=[];spont.result=null;render()});
+  wrap.querySelector('#spDeploy').addEventListener('click',()=>{
+    const blocks=r.blocks.map((b,bi)=>({id:b.id||String.fromCharCode(65+bi),station:b.station||'',
+      exercises:(b.exercises||[]).map((x,xi)=>{const row=edit.querySelector('[data-b="'+bi+'"][data-x="'+xi+'"]');
+        return {name:(row&&row.querySelector('.spName').value.trim())||x.name,target:row?row.querySelector('.spTarget').value.trim():x.target,tag:x.tag||'UPPER'}})}));
+    S.scanProgram={label:r.title||'SPONTANEOUS',sub:'SPONTANEOUS SESSION'+(eq.length?' — '+eq.slice(0,4).join(', ').toUpperCase():''),blocks,equipment:eq};
+    S.profile='scan';S.briefing=null;spont.photos=[];spont._want='';spont.result=null;tab='mission';toast('SESSION LIVE — LOG YOUR SETS');render()});
+  box.appendChild(wrap);
 }
 function buildFormCheck(){
   const camI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>';
