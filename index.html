@@ -862,6 +862,44 @@ function seedWeekPlan(){
   syncPlannedWk();
 }
 function mondayOf(d){const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(12,0,0,0);return x}
+
+/* ----- AI PLAN BUILDER (daily session is built on the MISSION briefing) ----- */
+const PLAN_DOWMAP={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
+const WEEK_DIRECTIVES='You are an elite strength & conditioning coach building a 7-DAY WEEKLY training split for ONE athlete. Use their goal, experience, injuries, equipment, and requested training days per week. Assign every weekday EXACTLY one slot type from this set: "lift" (resistance/strength), "cond" (HIIT/conditioning/metcon), "endur" (steady endurance/cardio), or "rest". The number of NON-rest days MUST equal the requested training days/week. Distribute load intelligently: avoid two high-CNS ("lift" or "cond") days back-to-back where possible, place rest to aid recovery, and bias the modality mix toward the primary goal. Respond ONLY with raw JSON, no markdown: {"rationale":"1-2 sentences on why this split serves the goal","week":{"mon":"lift|cond|endur|rest","tue":"...","wed":"...","thu":"...","fri":"...","sat":"...","sun":"..."}}';
+const MONTH_DIRECTIVES='You are an elite coach building a 4-WEEK monthly periodization (one mesocycle) for ONE athlete, aligned to their goal. Progress training stress across the block then deload: week 4 MUST be a lighter deload. For each week give a short focus theme, an intensity/volume guideline, and a one-sentence emphasis. Respond ONLY with raw JSON, no markdown: {"rationale":"1-2 sentences on the month strategy","weeks":[{"week":1,"focus":"e.g. Accumulation","intensity":"e.g. RPE 7 / standard volume","emphasis":"what to prioritize"},{"week":2,"focus":"...","intensity":"...","emphasis":"..."},{"week":3,"focus":"...","intensity":"...","emphasis":"..."},{"week":4,"focus":"Deload","intensity":"~ -20% load, RPE 6","emphasis":"recover and reset"}]}';
+function buildPlanFeed(){
+  const days=(S.cfg&&S.cfg.days)||4;const dur=(S.cfg&&S.cfg.dur)||45;
+  const types=(S.cfg&&S.cfg.types&&S.cfg.types.length)?S.cfg.types.join(', '):'unspecified';
+  const env=S.profile==='base'?'Commercial gym (barbells, rack, cables, dumbbells, pull-up bar, dip station)':S.profile==='rooftop'?'Minimal kit: dumbbells to 30 kg, pull-up bar, bands, 15-20 kg sandbag, mat':'Custom/AI-scanned equipment';
+  return '[GOAL]: Target weight '+cfgT()+' kg (current '+(currentKg()!=null?currentKg().toFixed(1):'unknown')+' kg). '+((S.cfg&&S.cfg.goals)||'general athleticism')+
+    '\n[ATHLETE]: Experience '+((S.cfg&&S.cfg.exp)||'intermediate')+'. Injuries/limits: '+((S.cfg&&S.cfg.injuries)||'none')+'. Preferred activities: '+types+'. Wants '+days+' training days/week, ~'+dur+' min/session. Equipment: '+env+'.'+
+    '\n[HISTORY]: '+missionsLast7()+' sessions logged last 7 days. Stalled lifts: '+(stalledLifts().join(', ')||'none')+'. Current mesocycle week '+meso().pos+' of 4.';
+}
+function applyWeekAI(week){
+  const valid=PLAN_SLOTS.map(s=>s.k);
+  for(const k in PLAN_DOWMAP){let v=String(week[k]||'rest').toLowerCase();if(!valid.includes(v))v='rest';S.weekPlan[PLAN_DOWMAP[k]]=v}
+  syncPlannedWk();
+}
+function planKeyMissing(box){if((S.apiKey||'').trim())return false;
+  box.innerHTML='<div class="vision-result"><div class="vr-flag">ADD AN AI KEY IN PROFILE FIRST — free Gemini key (AIza...) from aistudio.google.com, or Anthropic key (sk-ant-...).</div></div>';return true}
+async function requestWeekPlan(box){
+  if(planKeyMissing(box))return;
+  box.innerHTML='<div class="vision-result"><span class="spin"></span>COACH BUILDING YOUR WEEK...</div>';
+  try{
+    const r=await claudeText(WEEK_DIRECTIVES+'\n\nATHLETE DATA:\n'+buildPlanFeed());
+    if(!r||!r.week)throw new Error('schema');
+    applyWeekAI(r.week);S.weekPlanNote=r.rationale||'';save();beep(660,.15);render();
+  }catch(e){box.innerHTML='<div class="vision-result"><div class="vr-flag">PLANNER FAILED — '+uplinkMsg(e)+'</div></div>'}
+}
+async function requestMonthPlan(box){
+  if(planKeyMissing(box))return;
+  box.innerHTML='<div class="vision-result"><span class="spin"></span>COACH BUILDING YOUR MONTH...</div>';
+  try{
+    const r=await claudeText(MONTH_DIRECTIVES+'\n\nATHLETE DATA:\n'+buildPlanFeed());
+    if(!r||!r.weeks||!r.weeks.length)throw new Error('schema');
+    S.monthPlan={generated:today(),note:r.rationale||'',weeks:r.weeks.slice(0,4)};save();beep(660,.15);render();
+  }catch(e){box.innerHTML='<div class="vision-result"><div class="vr-flag">PLANNER FAILED — '+uplinkMsg(e)+'</div></div>'}
+}
 /* ----- PLAN: weekly schedule + monthly overview ----- */
 function viewPlan(){
   seedWeekPlan();
@@ -871,9 +909,21 @@ function viewPlan(){
   const mon=mondayOf(new Date());
   const tdy=today();
 
+  // ===== AI PLANNER =====
+  const aiBox=el('<div id="planAiBox"></div>');
+  const ai=el('<section class="panel panel-pad"><h2 class="panel-title">AI PLANNER</h2>'+
+    '<p class="panel-note">Build your schedule from your goals & constraints. Today’s session is built on the MISSION tab; the week and month are built here.</p>'+
+    '<div class="row mt"><button class="btn primary wide" id="aiWeek">AI · BUILD WEEK</button><button class="btn primary wide" id="aiMonth">AI · BUILD MONTH</button></div>'+
+    '<button class="btn wide mt" id="aiDay">BUILD TODAY’S SESSION →</button></section>');
+  ai.appendChild(aiBox);
+  ai.querySelector('#aiWeek').addEventListener('click',()=>requestWeekPlan(aiBox));
+  ai.querySelector('#aiMonth').addEventListener('click',()=>requestMonthPlan(aiBox));
+  ai.querySelector('#aiDay').addEventListener('click',()=>{tab='mission';render();flashFind('#rGo,#bqGo')});
+  view.appendChild(ai);
+
   // ===== WEEKLY SCHEDULE (editable) =====
   const wk=el('<section class="panel panel-pad"><h2 class="panel-title">WEEKLY PLAN</h2>'+
-    '<p class="panel-note">Assign each weekday. CHANGE cycles Rest → Strength → Conditioning → Endurance. It repeats every week.</p></section>');
+    '<p class="panel-note">AI-built or tap CHANGE to cycle Rest → Strength → Conditioning → Endurance. It repeats every week.</p></section>');
   let plannedWeek=0,doneWeek=0,volWeek=0;
   dayLbl.forEach((lab,i)=>{
     const dow=dowFor(i);
@@ -899,6 +949,7 @@ function viewPlan(){
     });
     wk.appendChild(card);
   });
+  if(S.weekPlanNote)wk.appendChild(el('<p class="api-note" style="margin-top:10px">COACH: '+esc(S.weekPlanNote)+'</p>'));
   view.appendChild(wk);
 
   // ===== THIS WEEK OVERVIEW =====
@@ -935,6 +986,21 @@ function viewPlan(){
     '<div><b class="num '+(mPlan&&mDone>=mPlan?'t-good':'')+'">'+(mPlan?Math.round(mDone/mPlan*100):0)+'%</b><span>MONTH ADHERENCE</span></div>'+
     '<div><b class="num">'+(mVol/1000).toFixed(1)+' T</b><span>TONNAGE</span></div></div></section>');
   view.appendChild(monthSec);
+
+  // ===== MONTHLY PERIODIZATION (AI) =====
+  if(S.monthPlan&&S.monthPlan.weeks&&S.monthPlan.weeks.length){
+    const curPos=meso().pos;
+    const mp=el('<section class="panel panel-pad"><h2 class="panel-title">MONTHLY PLAN — 4-WEEK BLOCK</h2>'+
+      (S.monthPlan.note?'<p class="panel-note">'+esc(S.monthPlan.note)+'</p>':'')+'</section>');
+    S.monthPlan.weeks.forEach((w,i)=>{
+      const wkN=w.week||i+1;const isCur=wkN===curPos;
+      mp.appendChild(el('<div class="day-card'+(isCur?' today':'')+'">'+
+        '<div class="dow">W'+wkN+'</div>'+
+        '<div class="dc-body"><b>'+esc(w.focus||('Week '+wkN))+'</b><span>'+esc(w.intensity||'')+(w.emphasis?' · '+esc(w.emphasis):'')+'</span></div>'+
+        (isCur?'<span style="color:var(--primary);font-size:11px;font-weight:700">NOW</span>':'')+'</div>'));
+    });
+    view.appendChild(mp);
+  }
 
   const cta=el('<button class="btn wide primary mt">GO TO TODAY’S MISSION</button>');
   cta.addEventListener('click',()=>{tab='mission';render()});
@@ -1348,12 +1414,12 @@ function buildUplinkPanel(){
   return keyPnl;
 }
 function uplinkMsg(err){
-  if(err&&(err.status===400||err.status===401||err.status===403))return 'KEY REJECTED (HTTP '+err.status+'). Check the key in VISION → UPLINK: Gemini keys start AIza..., Anthropic keys sk-ant-... Save and TEST.';
+  if(err&&(err.status===400||err.status===401||err.status===403))return 'KEY REJECTED (HTTP '+err.status+'). Check the key in PROFILE → AI API KEY: Gemini keys start AIza..., Anthropic keys sk-ant-... Save and retry.';
   if(err&&err.status===404)return 'MODEL UNAVAILABLE (404). Report this to the coach for a model-string update.';
   if(err&&err.status===429)return 'RATE LIMITED (429). Free-tier Gemini caps requests per minute — stand down 60 seconds and retry.';
   if(err&&err.status>=500)return 'AI API OVERLOADED ('+err.status+'). Not your fault — retry shortly.';
   if(err instanceof SyntaxError)return 'RESPONSE PARSE ERROR. Retry — the model returned malformed data.';
-  return 'NO UPLINK ROUTE. On a deployed build an API key is MANDATORY: free Gemini key from aistudio.google.com (AIza...) or Anthropic key (sk-ant-...) → VISION → UPLINK → SAVE → TEST. Also check signal.';
+  return 'NO UPLINK ROUTE. An API key is required: free Gemini key from aistudio.google.com (AIza...) or Anthropic key (sk-ant-...) → PROFILE → AI API KEY → SAVE. Also check signal.';
 }
 function visionErr(box,err){box.innerHTML='<div class="vision-result"><div class="vr-flag">'+uplinkMsg(err)+'</div></div>'}
 
@@ -1682,6 +1748,7 @@ function applyDefaults(){
   S.missionLog=S.missionLog||[];S.hiitLog=S.hiitLog||[];S.readiness=S.readiness||{};S.templates=S.templates||[];
   S.measures=S.measures||[];S.photos=S.photos||[];S.plannedWk=S.plannedWk||[];S.weekPlan=S.weekPlan||{};S.squadBoard=S.squadBoard||[];
   S.swaps=S.swaps||{};S.feedback=S.feedback||[];S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
+  S.weekPlanNote=S.weekPlanNote||'';S.monthPlan=S.monthPlan||null;
   seedWeekPlan();
   if(!S.startDate)S.startDate=S.weights.length?S.weights[0].date:today()}
 async function bootApp(){booted=false;
