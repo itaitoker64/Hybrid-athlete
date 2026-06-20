@@ -11,10 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="HYBRID/A" />
-<title>HYBRID ATHLETE V9.4 — Flow &amp; Power</title>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<title>HYBRID ATHLETE V10 — Flow &amp; Power</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -26,9 +23,6 @@
   --display:'Source Serif 4',Georgia,serif; --body:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
   --chamfer:none;
 }
-body.war{--bg:#0C0808;--surface:#171010;--surface2:#221414;--border:#3D2222;--fg:#F4EFEA;--muted:#9C8F8A;--primary:#EF2D2D;--on-primary:#FFFFFF;--primary-soft:rgba(239,45,45,.16);--success:#7FB069;--danger:#EF4444;font-size:17px}
-body.war .panel,body.war .hud{box-shadow:none}
-body.war .btn,body.war input,body.war select{min-height:52px}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;touch-action:manipulation}
@@ -81,11 +75,14 @@ button{cursor:pointer;font-family:inherit}
 .block-id{font-family:var(--display);font-weight:900;font-size:34px;line-height:1;color:var(--primary);min-width:32px}
 .block-meta h2{margin:0;font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.12em}
 .station{font-size:12px;color:var(--muted)}
-.rounds{margin-left:auto;display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);padding:10px 12px;min-height:44px;transition:transform .12s ease}
-.rounds:active{transform:scale(.95)}
-.pip{width:9px;height:9px;border:1px solid var(--muted);display:inline-block;transition:background .15s,border-color .15s}
+.roundctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.roundctl .rbtn{appearance:none;width:38px;height:38px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-family:var(--mono);font-size:22px;line-height:1;font-weight:700;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:transform .1s ease,opacity .15s}
+.roundctl .rbtn:active{transform:scale(.9)}
+.roundctl .rbtn:disabled{opacity:.3}
+.roundctl .pips{display:flex;gap:5px}
+.pip{width:11px;height:11px;border:1px solid var(--muted);display:inline-block;border-radius:3px;transition:background .15s,border-color .15s}
 .pip.filled{background:var(--primary);border-color:var(--primary)}
-.rounds-label{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:4px}
+.rounds-label{font-family:var(--mono);font-size:11px;color:var(--muted);min-width:26px;text-align:center}
 .exercise{padding:12px 14px;border-bottom:1px solid var(--border);transition:background .25s ease}
 .exercise:last-child{border-bottom:none}
 .exercise.flash{background:rgba(34,197,94,.1)}
@@ -267,40 +264,31 @@ input::placeholder{color:#B9B6AA}
 .nextstep .ns-act{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.15;margin-top:2px}
 .nextstep .ns-arrow{flex:none;font-size:22px;font-weight:700}
 .nextstep.done{background:var(--success)}
-body.athlete .nextstep{color:#fff}
-body.athlete .nextstep .ns-act{font-family:var(--display)}
-
-/* ===== ATHLETE PERSONA THEME (V9) ===== */
-body.athlete{--bg:#0E1116;--surface:#171B22;--surface2:#1F242E;--border:#2A313D;--fg:#F3F5F8;--muted:#9AA4B2;--primary:#4F8EF7;--on-primary:#0E1116;--primary-soft:rgba(79,142,247,.14);--success:#34D399;--danger:#F87171;--display:'Source Serif 4',Georgia,serif;--body:'Inter',system-ui,sans-serif}
-body.athlete .brand-sub{color:var(--primary)}
-.ath-hello{font-family:var(--display);font-weight:700;font-size:26px;margin:4px 0 2px}
-.ath-stat-row{display:flex;gap:8px;margin-top:12px}
-.ath-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center}
-.ath-stat b{display:block;font-size:20px;font-family:var(--body);font-weight:700}
-.ath-stat span{font-size:10px;color:var(--muted);letter-spacing:.05em}
-.ath-hero{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;margin-top:14px;box-shadow:0 4px 20px rgba(0,0,0,.25)}
-.ath-hero .kind{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;padding:4px 10px;border-radius:99px;color:#fff;margin-bottom:10px}
-.ath-hero h2{font-family:var(--display);font-size:24px;margin:6px 0}
-.ath-hero .meta{color:var(--muted);font-size:14px;margin-bottom:16px}
-.ath-cta{width:100%;border:none;border-radius:14px;background:var(--primary);color:#fff;font-family:var(--body);font-weight:700;font-size:17px;padding:16px;min-height:56px}
-.ath-cta:active{opacity:.85}
-.ath-alt{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:10px}
-.ath-alt .emoji{font-size:22px}
-.ath-alt .txt{flex:1}.ath-alt .txt b{font-size:15px}.ath-alt .txt span{display:block;font-size:12px;color:var(--muted)}
-.ath-q{font-family:var(--display);font-size:18px;margin:18px 0 8px}
+/* ===== ONBOARDING / PLAN PICKERS ===== */
 .pickrow{display:flex;gap:8px;flex-wrap:wrap}
 .pick{flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 8px;text-align:center;font-weight:600;font-size:14px;color:var(--fg)}
 .pick.sel{background:var(--primary);color:#fff;border-color:var(--primary)}
 .cat-card{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:10px;background:var(--surface)}
 .cat-dot{width:14px;height:14px;border-radius:99px;flex:none}
-.day-card{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:8px;background:var(--surface)}
-.day-card .dow{font-weight:700;min-width:42px}
-.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.score-card{border:1px solid var(--border);border-radius:16px;padding:16px;background:var(--surface)}
-.score-card .ring{font-family:var(--body);font-weight:700;font-size:28px}
-.score-card .lbl{font-size:12px;color:var(--muted)}
-.ach{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
-.ach.locked{opacity:.4}
+.day-card{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-top:8px;background:var(--surface)}
+.day-card.today{border-color:var(--primary);border-width:2px}
+.day-card .dow{font-weight:700;min-width:42px;font-family:var(--mono);font-size:12px}
+.day-card .dc-body{flex:1}
+.day-card .dc-body b{font-size:15px}
+.day-card .dc-body span{display:block;font-size:11px;color:var(--muted)}
+.day-card .dc-pick{appearance:none;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:10px}
+.month-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.month-cal .mc-h{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;padding:2px 0}
+.month-cal .mc-d{aspect-ratio:1;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--bg)}
+.month-cal .mc-d.pad{border:none;background:transparent}
+.month-cal .mc-d.today{border-color:var(--primary);border-width:2px}
+.month-cal .mc-dot{width:7px;height:7px;border-radius:2px;border:1px solid var(--border)}
+.month-cal .mc-dot.done{background:var(--success);border-color:var(--success)}
+.month-cal .mc-dot.miss{background:var(--danger);border-color:var(--danger)}
+.month-cal .mc-dot.plan{background:transparent;border-color:var(--primary)}
+.plan-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.plan-legend span{display:flex;align-items:center;gap:5px}
+.plan-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;border:1px solid var(--border)}
 /* onboarding */
 .ob{position:fixed;inset:0;z-index:280;background:var(--bg);overflow-y:auto;padding:calc(24px + env(safe-area-inset-top)) 18px 24px}
 .ob-card{max-width:460px;margin:0 auto}
@@ -309,19 +297,6 @@ body.athlete .brand-sub{color:var(--primary)}
 .ob-sub{color:var(--muted);font-size:14px;margin-bottom:16px}
 .ob-nav{display:flex;gap:10px;margin-top:22px}
 .ob-nav .btn{flex:1}
-.persona-pick{border:2px solid var(--border);border-radius:18px;padding:20px;margin-top:12px;background:var(--surface)}
-.persona-pick.sel{border-color:var(--primary)}
-.persona-pick h3{font-family:var(--display);font-size:20px;margin:0 0 4px}
-.persona-pick p{color:var(--muted);font-size:13px;margin:0}
-
-/* ===== AUTH GATE (V8) ===== */
-.gate{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:20px}
-.gate-card{width:100%;max-width:420px}
-.gate-brand{font-family:var(--display);font-weight:700;font-size:30px;text-align:center;margin-bottom:2px}
-.gate-brand b{color:var(--primary)}
-.gate-sub{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--primary);text-align:center;display:block;margin-bottom:20px}
-.gate .panel-pad{display:flex;flex-direction:column;gap:10px}
-.gate .or{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--muted);text-align:center;margin:4px 0}
 </style>
 </head>
 <body>
@@ -329,7 +304,7 @@ body.athlete .brand-sub{color:var(--primary)}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V9.4</span>
+      <span class="brand-sub">FLOW &amp; POWER · V10</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -337,14 +312,7 @@ body.athlete .brand-sub{color:var(--primary)}
     </div>
   </header>
 
-  <div class="hud" id="hud">
-    <div class="hud-label">LIFTING WINDOW — 60:00 HARD CAP</div>
-    <div class="hud-clock num" id="clock">60:00</div>
-    <div class="hud-controls">
-      <button class="btn ghost" id="clockToggle">START</button>
-      <button class="btn ghost" id="clockReset">RESET</button>
-    </div>
-    <div class="hud-msg" id="clockMsg" hidden>TIME CAP HIT. RACK THE WEIGHTS.</div>
+  <div class="hud" id="hud" hidden>
     <div class="hud-msg" id="restMsg" style="color:var(--success)" hidden></div>
   </div>
 
@@ -355,16 +323,15 @@ body.athlete .brand-sub{color:var(--primary)}
 <nav class="nav" role="tablist" aria-label="Sections">
   <button data-tab="mission" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h3M18 12h3M7 8v8M17 8v8M7 12h10M5 9v6M19 9v6"/></svg>MISSION</button>
   <button data-tab="fuel" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>FUEL</button>
-  <button data-tab="vision" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/></svg>VISION</button>
-  <button data-tab="data" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg>DATA</button>
-  <button data-tab="hiit" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg>HIIT</button>
-  <button data-tab="pilates" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 18c3-6 13-6 16 0M7 11a5 5 0 0 1 10 0M12 4v3"/></svg>PILATES</button>
+  <button data-tab="plan" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M7 4v3M17 4v3M4 9h16M5 5h14v15H5z"/></svg>PLAN</button>
+  <button data-tab="data" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg>PROGRESS</button>
+  <button data-tab="profile" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>PROFILE</button>
 </nav>
 
 <script>
 'use strict';
 /* ============ CONSTANTS ============ */
-const WATER_TARGET=3000,MISSION_SECONDS=3600,BAR_KG=20;
+const WATER_TARGET=3000,BAR_KG=20;
 function cfgT(){return (S.cfg&&S.cfg.target)||81}
 function cfgK(){return (S.cfg&&S.cfg.kcal)||2500}
 function cfgP(){return (S.cfg&&S.cfg.protein)||180}
@@ -419,35 +386,18 @@ const SUBS={
 /* ============ STATE ============ */
 let S={profile:'base',scanProgram:null,swaps:{},weights:[{date:today(),kg:90.0}],sets:[],rounds:{},
  nutrition:{},water:{},missions:[],missionLog:[],hiitLog:[],readiness:{},templates:[],measures:[],
- photos:[],plannedWk:[],squadBoard:[],war:false,startDate:today(),apiKey:'',
+ photos:[],plannedWk:[],weekPlan:{},squadBoard:[],startDate:today(),apiKey:'',
  cfg:{target:81,kcal:2500,protein:180,goals:'Reach target weight while building hybrid athleticism (strength + conditioning) and a visible core. Time-efficient training only.',injuries:'None reported',exp:'Intermediate, combat-fit'},
  briefing:null,aiFuel:null};
 let mem=null;
 function liso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function today(){return liso(new Date())}
 
-/* ===== MULTI-USER / FIREBASE (V8) ===== */
-let FB={auth:null,db:null,user:null};
-let UID='local', booted=false;
+/* ===== LOCAL STORAGE (V10) ===== */
+let booted=false;
 const DEFAULT_S=JSON.stringify(S);
 function freshState(){return JSON.parse(DEFAULT_S)}
-const FB_DEFAULT={apiKey:"AIzaSyCaoStV3Vl-YC73whAGel4wFvC8VeMFH1s",authDomain:"training2026-79831.firebaseapp.com",projectId:"training2026-79831",storageBucket:"training2026-79831.firebasestorage.app",messagingSenderId:"714351816479",appId:"1:714351816479:web:bbd25633351006db0c0a2a"};
-function fbConfig(){try{const r=localStorage.getItem('ha-fb-config');if(r)return JSON.parse(r)}catch(e){};return FB_DEFAULT}
-function fbReady(){return !!(FB.auth)}
-function fbInit(){const cfg=fbConfig();if(!cfg||!window.firebase)return false;
-  try{firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(cfg);
-    FB.auth=firebase.auth();FB.db=firebase.firestore();return true}catch(e){return false}}
-function stateKey(){return UID==='local'?'ha-state-v6':'ha-state-v6:'+UID}
 async function loadState(){
-  if(UID!=='local'){
-    let cloud=null,local=null;
-    try{const d=await FB.db.collection('users').doc(UID).get();if(d.exists&&d.data().state)cloud=JSON.parse(d.data().state)}catch(e){}
-    try{const r=localStorage.getItem(stateKey());if(r)local=JSON.parse(r)}catch(e){}
-    if(cloud&&(!local||(cloud._ts||0)>=(local._ts||0)))return cloud;
-    if(local)return local;
-    try{const r=localStorage.getItem('ha-state-v6');if(r)return JSON.parse(r)}catch(e){}
-    return null;
-  }
   for(const key of ['ha-state-v6','ha-state-v5','ha-state-v4','ha-state-v3','ha-state-v2']){
     try{ if(window.storage){const r=await window.storage.get(key);if(r&&r.value)return JSON.parse(r.value)} }catch(e){}
     try{ const r=localStorage.getItem(key); if(r)return JSON.parse(r) }catch(e){}
@@ -457,15 +407,9 @@ async function loadState(){
 let saveT=null;
 function save(){if(!booted)return;clearTimeout(saveT);
   saveT=setTimeout(async()=>{S._ts=Date.now();const s=JSON.stringify(S);mem=S;
-    try{ if(UID==='local'&&window.storage){await window.storage.set('ha-state-v6',s)} }catch(e){}
-    try{ localStorage.setItem(stateKey(),s) }catch(e){toast('STORAGE FULL — CULL PHOTOS OR EXPORT+RESET')}
-    if(UID!=='local'&&FB.db){try{await FB.db.collection('users').doc(UID).set({state:s,_ts:S._ts,email:FB.user&&FB.user.email||null})}catch(e){}}
+    try{ if(window.storage){await window.storage.set('ha-state-v6',s)} }catch(e){}
+    try{ localStorage.setItem('ha-state-v6',s) }catch(e){toast('STORAGE FULL — CULL PHOTOS OR EXPORT+RESET')}
   },300)}
-function parseFbConfigText(txt){
-  const m=String(txt).match(/\{[\s\S]*\}/);if(!m)throw new Error('no object');
-  let t=m[0].replace(/\/\/[^\n]*/g,'').replace(/'/g,'"').replace(/([,{]\s*)([A-Za-z0-9_]+)\s*:/g,'$1"$2":').replace(/,\s*}/g,'}');
-  return JSON.parse(t);
-}
 
 /* ============ HELPERS ============ */
 const $=s=>document.querySelector(s);
@@ -570,33 +514,6 @@ function proteinStreak(){let n=0;
   for(let i=0;i<365;i++){const d=dstr(-i);const rec=S.nutrition[d];const hit=rec&&rec.protein>=cfgP();
     if(hit)n++;else{if(i===0)continue;break}}return n}
 
-/* ============ AUTH GATE ============ */
-function showAuthGate(){
-  closeAuthGate();
-  const g=el('<div class="gate"><div class="gate-card">'+
-    '<div class="gate-brand">HYBRID<b>/</b>ATHLETE</div><span class="gate-sub">OPERATOR LOGIN</span>'+
-    '<section class="panel panel-pad">'+
-    '<label class="f"><span>EMAIL</span><input id="auE" type="email" autocomplete="email" placeholder="operator@unit.com"></label>'+
-    '<label class="f"><span>PASSWORD</span><input id="auP" type="password" autocomplete="current-password" placeholder="••••••••"></label>'+
-    '<div class="row"><button class="btn primary wide" id="auIn">SIGN IN</button><button class="btn wide" id="auNew">CREATE ACCOUNT</button></div>'+
-    '<div class="or">— OR —</div>'+
-    '<button class="btn wide" id="auG">CONTINUE WITH GOOGLE</button>'+
-    '<button class="btn wide" id="auA">CONTINUE WITH APPLE</button>'+
-    '<p class="api-note">Apple activates only after Apple Developer Program setup in Firebase. Google and email work now.</p>'+
-    '<div class="or">— OR —</div>'+
-    '<button class="btn ghost wide" id="auL">USE LOCAL MODE (THIS DEVICE ONLY)</button>'+
-    '</section></div></div>');
-  const E=()=>g.querySelector('#auE').value.trim(),P=()=>g.querySelector('#auP').value;
-  g.querySelector('#auIn').addEventListener('click',()=>{if(!E()||!P())return toast('EMAIL + PASSWORD REQUIRED');
-    FB.auth.signInWithEmailAndPassword(E(),P()).catch(err=>toast('SIGN-IN FAILED: '+(err.code||err.message)))});
-  g.querySelector('#auNew').addEventListener('click',()=>{if(!E()||P().length<6)return toast('EMAIL + 6+ CHAR PASSWORD');
-    FB.auth.createUserWithEmailAndPassword(E(),P()).catch(err=>toast('CREATE FAILED: '+(err.code||err.message)))});
-  g.querySelector('#auG').addEventListener('click',()=>{FB.auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()).catch(err=>toast(err.code||'GOOGLE FAILED'))});
-  g.querySelector('#auA').addEventListener('click',()=>{FB.auth.signInWithRedirect(new firebase.auth.OAuthProvider('apple.com')).catch(err=>toast('APPLE NOT CONFIGURED IN FIREBASE YET'))});
-  g.querySelector('#auL').addEventListener('click',()=>{try{localStorage.setItem('ha-skip-auth','1')}catch(e){};closeAuthGate();startLocal()});
-  document.body.appendChild(g);
-}
-function closeAuthGate(){document.querySelectorAll('.gate').forEach(x=>x.remove())}
 
 /* ============ TOAST / AUDIO ============ */
 let toastT=null;
@@ -616,50 +533,15 @@ async function lockScreen(){try{if('wakeLock' in navigator&&!wakeLock){wakeLock=
 function unlockScreen(){try{if(wakeLock&&!running&&!hiit.running){wakeLock.release();wakeLock=null}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(running||hiit.running))lockScreen()});
 
-/* ============ MISSION CLOCK + REST TIMER ============ */
-let secondsLeft=MISSION_SECONDS,running=false,clockTick=null;
-function clockState(){return S.clock=S.clock||{end:null,pausedLeft:null}}
-function renderClock(){$('#clock').textContent=fmtClock(secondsLeft);
-  $('#clock').classList.toggle('expired',secondsLeft===0);
-  $('#hud').classList.toggle('live',running);
-  $('#clockToggle').textContent=running?'PAUSE':(secondsLeft===MISSION_SECONDS?'START':'RESUME');
-  $('#clockMsg').hidden=secondsLeft!==0}
-let clockPrev=null;
-function clockTickFn(){const c=clockState();
-  if(!c.end)return;
-  secondsLeft=Math.max(0,Math.round((c.end-Date.now())/1000));
-  if(clockPrev!=null){for(const w of [1800,900,300,60]){
-    if(clockPrev>w&&secondsLeft<=w&&secondsLeft>0){beep(700,.25);buzz([80,60,80]);toast(fmtClock(w)+' REMAINING IN LIFTING WINDOW')}}}
-  clockPrev=secondsLeft;
-  if(secondsLeft<=0){secondsLeft=0;running=false;clearInterval(clockTick);
-    c.end=null;c.pausedLeft=null;save();beep(880,.4);buzz([150,80,150]);unlockScreen()}
-  renderClock()}
-function startClockTick(){clearInterval(clockTick);clockTick=setInterval(clockTickFn,500);clockTickFn()}
-$('#clockToggle').addEventListener('click',()=>{const c=clockState();
-  if(secondsLeft===0)return;
-  if(running){ // pause
-    running=false;clearInterval(clockTick);
-    secondsLeft=Math.max(0,Math.round((c.end-Date.now())/1000));
-    c.pausedLeft=secondsLeft;c.end=null;save();unlockScreen();
-  }else{ // start / resume
-    running=true;c.end=Date.now()+secondsLeft*1000;c.pausedLeft=null;save();
-    lockScreen();startClockTick();
-  }
-  renderClock()});
-$('#clockReset').addEventListener('click',()=>{const c=clockState();clockPrev=null;
-  running=false;clearInterval(clockTick);secondsLeft=MISSION_SECONDS;
-  c.end=null;c.pausedLeft=null;save();unlockScreen();renderClock()});
-function restoreClock(){const c=clockState();
-  if(c.end){const left=Math.round((c.end-Date.now())/1000);
-    if(left>0){secondsLeft=left;running=true;lockScreen();startClockTick();toast('LIFTING WINDOW RESUMED — '+fmtClock(left)+' REMAINING')}
-    else{secondsLeft=0;running=false;c.end=null;save()}}
-  else if(c.pausedLeft!=null){secondsLeft=c.pausedLeft}}
+/* ============ REST TIMER ============ */
+let running=false; // no lifting hard-cap clock anymore; kept for wake-lock guards
 let rest={end:0,timer:null,label:''};
 function startRest(label){clearInterval(rest.timer);rest.end=Date.now()+90000;rest.label=label;updateRest();
   rest.timer=setInterval(()=>{const left=Math.round((rest.end-Date.now())/1000);
     if(left<=0){clearInterval(rest.timer);rest.label='';beep(660,.3);buzz(120)}updateRest()},500)}
-function updateRest(){const m=$('#restMsg');if(!m)return;const left=Math.max(0,Math.round((rest.end-Date.now())/1000));
-  if(left>0&&rest.label){m.hidden=false;m.textContent='REST '+fmtClock(left)+' · '+rest.label}else m.hidden=true}
+function updateRest(){const m=$('#restMsg'),hud=$('#hud');if(!m)return;const left=Math.max(0,Math.round((rest.end-Date.now())/1000));
+  if(left>0&&rest.label){m.hidden=false;m.textContent='REST '+fmtClock(left)+' · '+rest.label;if(hud)hud.hidden=false}
+  else{m.hidden=true;if(hud)hud.hidden=true}}
 
 /* ============ REMINDERS ============ */
 function notify(title,body){try{if(Notification.permission==='granted'){
@@ -754,7 +636,7 @@ function videoFrames(file,n){return new Promise((resolve,reject)=>{
 const MEAL_PROMPT='You are a tactical nutrition analyst. Estimate this meal. Respond ONLY with raw JSON, no markdown: {"name":"short meal name","calories":int,"protein_g":int,"carbs_g":int,"fat_g":int,"banned":bool,"banned_reason":"why or empty"} banned=true if it likely contains: '+BANNED+'. Estimate the visible portion realistically.';
 const GYM_PROMPT='You are a tactical strength coach AI. Identify usable equipment in this gym photo and build a full-body workout using ONLY detected equipment. Rules: exactly 4 blocks A-D; each block exactly 3 exercises back-to-back (1 UPPER + 1 LOWER + 1 CORE in that order); group each block by physical proximity. Respond ONLY raw JSON: {"equipment":["..."],"blocks":[{"id":"A","station":"...","exercises":[{"name":"...","target":"...","tag":"UPPER|LOWER|CORE"}]} x4]}';
 async function claudeText(prompt){return claudeMM([{type:'text',text:prompt}])}
-const COACH_DIRECTIVES='You are the Coach\'s Brain: an elite auto-regulating AI performance coach embedded in a training app. You do not set goals; the data feed provides them. Analyze the feed and adapt TODAY\'s training and nutrition. Directives: (1) RELENTLESS ADAPTABILITY: recalibrate instantly for high fatigue, poor sleep, limited time, or missed sessions - swap intensity or modality, shift the week, prevent overtraining while keeping the macro-goal alive. (2) DYNAMIC NUTRITION: no static plans - set today\'s kcal and macros to the energy demand of the workout you just assigned; rest/low days get less, hard days more; NEVER below the protein floor; respect banned foods; keep the trajectory aligned with the weight goal. (3) INTELLIGENT PROGRESSION: if recent history shows targets cleared easily, increase load, volume, or complexity for that pattern. (4) TONE: direct, concise, sharp, professional, encouraging; explain WHY so the user trusts the process. (5) SAFETY: respect listed injuries; very low readiness gets recovery, not heroics; never program through sharp or joint pain. HOUSE ARCHITECTURE when prescribing lifting: blocks of EXACTLY 3 exercises (1 UPPER + 1 LOWER + 1 CORE, in that order, zero rest inside the block, 60-90 s after), 2-4 blocks sized to available time, 60-minute hard cap, grouped by equipment proximity. Respond ONLY with raw JSON, no markdown, no preamble: {"coach_note":"2-3 sentences directly to the user acknowledging their state and explaining today\'s adjustment","protocol_type":"LIFT|RECOVERY|HIIT","blocks":[{"id":"A","station":"...","exercises":[{"name":"...","target":"reps/time","tag":"UPPER|LOWER|CORE"}]}],"recovery":["step"],"schedule_shift":"impact on next 2-3 days","fueling":{"kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0,"note":"short why"}} - include blocks only when protocol_type is LIFT; include recovery steps only for RECOVERY or HIIT.';
+const COACH_DIRECTIVES='You are the Coach\'s Brain: an elite auto-regulating AI performance coach embedded in a training app. You do not set goals; the data feed provides them. Analyze the feed and adapt TODAY\'s training and nutrition. Directives: (1) RELENTLESS ADAPTABILITY: recalibrate instantly for high fatigue, poor sleep, limited time, or missed sessions - swap intensity or modality, shift the week, prevent overtraining while keeping the macro-goal alive. (2) DYNAMIC NUTRITION: no static plans - set today\'s kcal and macros to the energy demand of the workout you just assigned; rest/low days get less, hard days more; NEVER below the protein floor; respect banned foods; keep the trajectory aligned with the weight goal. (3) INTELLIGENT PROGRESSION: if recent history shows targets cleared easily, increase load, volume, or complexity for that pattern. (4) TONE: direct, concise, sharp, professional, encouraging; explain WHY so the user trusts the process. (5) SAFETY: respect listed injuries; very low readiness gets recovery, not heroics; never program through sharp or joint pain. HOUSE ARCHITECTURE when prescribing lifting: blocks of EXACTLY 3 exercises (1 UPPER + 1 LOWER + 1 CORE, in that order, zero rest inside the block, 60-90 s after), 2-4 blocks sized to available time, grouped by equipment proximity. Respond ONLY with raw JSON, no markdown, no preamble: {"coach_note":"2-3 sentences directly to the user acknowledging their state and explaining today\'s adjustment","protocol_type":"LIFT|RECOVERY|HIIT","blocks":[{"id":"A","station":"...","exercises":[{"name":"...","target":"reps/time","tag":"UPPER|LOWER|CORE"}]}],"recovery":["step"],"schedule_shift":"impact on next 2-3 days","fueling":{"kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0,"note":"short why"}} - include blocks only when protocol_type is LIFT; include recovery steps only for RECOVERY or HIIT.';
 function buildFeed(timeMin){
   const r=todayReadiness()||{};const d=debrief();const yest=dstr(-1);
   const ySets=S.sets.filter(s=>s.date===yest);
@@ -859,7 +741,7 @@ function csvSets(){return 'date,profile,block,exercise,kg,reps,rpe,speed\n'+
 function csvWeights(){return 'date,kg\n'+S.weights.map(w=>w.date+','+w.kg).join('\n')}
 
 
-/* ============ PERSONA / ONBOARDING / ATHLETE (V9) ============ */
+/* ============ ONBOARDING / PLAN (V10) ============ */
 const CATS={
  strength:{label:'Strength',emoji:'\ud83d\udcaa',color:'#4F8EF7',levels:['New to strength training','I train occasionally','I train consistently']},
  hiit:{label:'HIIT',emoji:'\ud83d\udd25',color:'#F59E0B',levels:['New to it','Some experience','I train consistently']},
@@ -869,18 +751,16 @@ const CATS={
 const GOALS=[['weight','Weight loss'],['strength','Build strength'],['endurance','Improve endurance'],['mobility','Mobility']];
 const EQUIP=[['home','Home'],['gym','Gym'],['none','No equipment']];
 const DUR=[15,30,45,60];
-function persona(){return (S.cfg&&S.cfg.persona)||null}
-
 /* ----- ONBOARDING ----- */
 function showOnboarding(){
   closeOnboarding();
-  const O={persona:null,goals:[],types:[],equip:[],days:4,dur:30,levels:{}};
+  const O={goals:[],types:[],equip:[],days:4,dur:30,levels:{}};
   let step=0;
   const wrap=el('<div class="ob"><div class="ob-card" id="obBody"></div></div>');
   document.body.appendChild(wrap);
   const body=wrap.querySelector('#obBody');
   const steps=[
-    ()=>persoStep(),()=>goalStep(),()=>typeStep(),()=>equipStep(),()=>daysStep(),()=>durStep(),()=>levelStep()
+    ()=>goalStep(),()=>typeStep(),()=>equipStep(),()=>daysStep(),()=>durStep(),()=>levelStep()
   ];
   function chip(text,on,cb){const b=el('<button class="pick'+(on?' sel':'')+'">'+esc(text)+'</button>');b.addEventListener('click',cb);return b}
   function frame(stepLabel,title,sub,contentNodes,canNext){
@@ -896,50 +776,41 @@ function showOnboarding(){
     nx.addEventListener('click',()=>{if(step===steps.length-1){finish()}else{step++;render2()}});
     nav.appendChild(nx);body.appendChild(nav);
   }
-  function persoStep(){
-    const c=el('<div></div>');
-    const cmd=el('<div class="persona-pick'+(O.persona==='commander'?' sel':'')+'"><h3>\u26a1 Commander</h3><p>Tactical, strict, mission-driven. Missions, blocks, hard caps, no coddling. The original Flow & Power system.</p></div>');
-    const ath=el('<div class="persona-pick'+(O.persona==='athlete'?' sel':'')+'"><h3>\ud83d\udc4b Athlete</h3><p>A friendly personal coach. Open the app, see today\u2019s workout, tap start. Encouraging and simple.</p></div>');
-    cmd.addEventListener('click',()=>{O.persona='commander';render2()});
-    ath.addEventListener('click',()=>{O.persona='athlete';render2()});
-    c.appendChild(cmd);c.appendChild(ath);
-    frame('STEP 1 / 7','Choose your coach','You can change this later in your profile.',[c],!!O.persona);
-  }
   function multiStep(stepLabel,title,sub,opts,arr,nextN){
     const row=el('<div class="pickrow"></div>');
     opts.forEach(([k,lab])=>row.appendChild(chip(lab,arr.includes(k),()=>{const i=arr.indexOf(k);i>=0?arr.splice(i,1):arr.push(k);render2()})));
     frame(stepLabel,title,sub,[row],arr.length>=1);
   }
-  function goalStep(){multiStep('STEP 2 / 7','Your goals','Pick everything that applies.',GOALS,O.goals)}
-  function typeStep(){multiStep('STEP 3 / 7','Workouts you enjoy','These shape your weekly plan.',Object.keys(CATS).map(k=>[k,CATS[k].emoji+' '+CATS[k].label]),O.types)}
-  function equipStep(){multiStep('STEP 4 / 7','Available equipment','What can you train with?',EQUIP,O.equip)}
+  function goalStep(){multiStep('STEP 1 / 6','Your goals','Pick everything that applies.',GOALS,O.goals)}
+  function typeStep(){multiStep('STEP 2 / 6','Workouts you enjoy','These shape your weekly plan.',Object.keys(CATS).map(k=>[k,CATS[k].emoji+' '+CATS[k].label]),O.types)}
+  function equipStep(){multiStep('STEP 3 / 6','Available equipment','What can you train with?',EQUIP,O.equip)}
   function daysStep(){
     const row=el('<div class="pickrow"></div>');
     [1,2,3,4,5,6,7].forEach(n=>row.appendChild(chip(String(n),O.days===n,()=>{O.days=n;render2()})));
-    frame('STEP 5 / 7','Days per week','How many days will you train?',[row],true);
+    frame('STEP 4 / 6','Days per week','How many days will you train?',[row],true);
   }
   function durStep(){
     const row=el('<div class="pickrow"></div>');
     DUR.forEach(n=>row.appendChild(chip(n+' min',O.dur===n,()=>{O.dur=n;render2()})));
-    frame('STEP 6 / 7','Session length','Your preferred workout duration.',[row],true);
+    frame('STEP 5 / 6','Session length','Your preferred workout duration.',[row],true);
   }
   function levelStep(){
     const nodes=[];
     const pool=O.types.length?O.types:Object.keys(CATS);
     pool.forEach(k=>{
       const C=CATS[k];
-      nodes.push(el('<div class="ath-q">'+C.emoji+' '+C.label+'</div>'));
+      nodes.push(el('<div style="font-weight:700;font-size:16px;margin:16px 0 8px">'+C.emoji+' '+C.label+'</div>'));
       const row=el('<div class="pickrow"></div>');
       C.levels.forEach((lv,idx)=>row.appendChild(chip(lv,(O.levels[k]||0)===idx,()=>{O.levels[k]=idx;render2()})));
       nodes.push(row);
     });
     const allSet=pool.every(k=>O.levels[k]!=null);
-    frame('STEP 7 / 7','Experience level','Set your level for each activity \u2014 they can differ.',nodes,allSet);
+    frame('STEP 6 / 6','Experience level','Set your level for each activity \u2014 they can differ.',nodes,allSet);
   }
   function render2(){steps[step]()}
   function finish(){
     S.cfg=S.cfg||{};
-    S.cfg.persona=O.persona;S.cfg.goals2=O.goals;S.cfg.types=O.types;S.cfg.equip=O.equip;
+    S.cfg.goals2=O.goals;S.cfg.types=O.types;S.cfg.equip=O.equip;
     S.cfg.days=O.days;S.cfg.dur=O.dur;S.cfg.levels=O.levels;S.cfg.onboarded=true;
     // map to legacy fields the engine reads
     S.cfg.exp=O.levels.strength===2?'Advanced':O.levels.strength===1?'Intermediate':'Beginner';
@@ -947,250 +818,127 @@ function showOnboarding(){
     else if(O.goals.includes('strength'))S.cfg.goals='Build maximal strength while staying lean and athletic.';
     else if(O.goals.includes('endurance'))S.cfg.goals='Improve endurance and conditioning across modalities.';
     S.profile=O.equip.includes('gym')?'base':'rooftop';
+    seedWeekPlan();
     save();closeOnboarding();
-    tab=O.persona==='athlete'?'home':'mission';
+    tab='mission';
     booted=true;renderNav();render();
-    toast(O.persona==='athlete'?'Welcome aboard \ud83d\udc4b':'OPERATOR PROFILE SET. WELCOME, COMMANDER.');
+    toast('OPERATOR PROFILE SET. WELCOME, COMMANDER.');
   }
   render2();
 }
 function closeOnboarding(){document.querySelectorAll('.ob').forEach(x=>x.remove())}
 
-/* ----- ATHLETE NAV ----- */
-const NAV_ATHLETE=[['home','Home','M3 11l9-7 9 7M5 10v10h14V10'],['plan','Plan','M7 4v3M17 4v3M4 9h16M5 5h14v15H5z'],['workout','Workout','M3 12h3M18 12h3M7 8v8M17 8v8M7 12h10'],['progress','Progress','M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3'],['profile','Profile','M12 12a4 4 0 100-8 4 4 0 000 8zM5 20c0-3.5 3-6 7-6s7 2.5 7 6']];
+/* ----- NAV ----- */
 function renderNav(){
   const nav=document.querySelector('.nav');if(!nav)return;
-  if(persona()==='athlete'){
-    nav.style.gridTemplateColumns='repeat(5,1fr)';
-    nav.innerHTML=NAV_ATHLETE.map(([id,lab,path])=>'<button data-tab="'+id+'" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="'+path+'"/></svg>'+lab+'</button>').join('');
-  }else{
-    nav.style.gridTemplateColumns='repeat(5,1fr)';
-    nav.innerHTML=''+
-      '<button data-tab="mission" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h3M18 12h3M7 8v8M17 8v8M7 12h10M5 9v6M19 9v6"/></svg>TODAY</button>'+
-      '<button data-tab="fuel" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>FUEL</button>'+
-      '<button data-tab="pilates" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 18c3-6 13-6 16 0M7 11a5 5 0 0 1 10 0M12 4v3"/></svg>PILATES</button>'+
-      '<button data-tab="data" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg>PROGRESS</button>'+
-      '<button data-tab="profile" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>PROFILE</button>';
-  }
+  nav.style.gridTemplateColumns='repeat(5,1fr)';
+  nav.innerHTML=''+
+    '<button data-tab="mission" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h3M18 12h3M7 8v8M17 8v8M7 12h10M5 9v6M19 9v6"/></svg>MISSION</button>'+
+    '<button data-tab="fuel" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg>FUEL</button>'+
+    '<button data-tab="plan" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M7 4v3M17 4v3M4 9h16M5 5h14v15H5z"/></svg>PLAN</button>'+
+    '<button data-tab="data" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg>PROGRESS</button>'+
+    '<button data-tab="profile" role="tab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>PROFILE</button>';
   document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;render()}));
 }
 
-/* ----- ATHLETE: streak + scores ----- */
+/* ----- STREAK + WEEK PLAN MODEL ----- */
 function streakDays(){let n=0;for(let i=0;i<400;i++){const d=dstr(-i);if(S.missions.includes(d))n++;else if(i===0)continue;else break}return n}
-function athStats(){
-  const wk=missionsLast7();const goal=(S.cfg&&S.cfg.days)||4;
-  const r=todayReadiness();const energy=r?Math.round(r.score/10):null;
-  return {streak:streakDays(),energy,wk,goal};
+// Training slots a weekday can hold. train=true counts toward planned sessions.
+const PLAN_SLOTS=[
+  {k:'rest',label:'Rest',short:'REST',color:'var(--muted)',train:false},
+  {k:'lift',label:'Strength',short:'LIFT',color:'var(--primary)',train:true},
+  {k:'cond',label:'Conditioning',short:'COND',color:'#F59E0B',train:true},
+  {k:'endur',label:'Endurance',short:'ENDUR',color:'var(--success)',train:true}
+];
+function slotOf(k){return PLAN_SLOTS.find(s=>s.k===k)||PLAN_SLOTS[0]}
+function planFor(dow){return (S.weekPlan&&S.weekPlan[dow])||'rest'}
+function syncPlannedWk(){S.plannedWk=[];for(let d=0;d<7;d++){if(planFor(d)!=='rest')S.plannedWk.push(d)}}
+function seedWeekPlan(){
+  S.weekPlan=S.weekPlan||{};
+  if(Object.keys(S.weekPlan).length)return;
+  if(S.plannedWk&&S.plannedWk.length){for(let d=0;d<7;d++)S.weekPlan[d]=S.plannedWk.includes(d)?'lift':'rest';return}
+  const days=(S.cfg&&S.cfg.days)||4;const order=[1,2,4,5,3,6,0]; // Mon,Tue,Thu,Fri,Wed,Sat,Sun
+  for(let i=0;i<7;i++)S.weekPlan[order[i]]=i<days?'lift':'rest';
+  syncPlannedWk();
 }
-function athToday(){
-  // reuse coach briefing if present, else a sensible default from plan
-  if(S.briefing&&S.briefing.date===today()&&S.briefing.r){const B=S.briefing.r;
-    return {kind:B.protocol_type==='LIFT'?'Strength Training':B.protocol_type==='HIIT'?'HIIT':'Recovery',
-      sub:B.protocol_type==='LIFT'?'Full Body':'Session',dur:(S.briefing.time||S.cfg.dur||30)+' minutes',
-      level:(S.cfg&&S.cfg.exp)||'Intermediate',color:CATS.strength.color,note:B.coach_note,ready:true};
-  }
-  const cat=(S.cfg&&S.cfg.types&&S.cfg.types[ (new Date().getDay()) % (S.cfg.types.length||1) ])||'strength';
-  const C=CATS[cat]||CATS.strength;
-  return {kind:C.label+(cat==='strength'?' Training':''),sub:'Coach-built session',dur:((S.cfg&&S.cfg.dur)||30)+' minutes',
-    level:(S.cfg&&S.cfg.exp)||'Intermediate',color:C.color,note:null,ready:false};
-}
-function viewHome(){
-  const u=FB.user&&FB.user.email?FB.user.email.split('@')[0]:'there';
-  const hr=new Date().getHours();const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
-  view.appendChild(el('<div class="ath-hello">'+greet+', '+esc(u.charAt(0).toUpperCase()+u.slice(1))+'</div>'));
-  view.appendChild(el('<div class="ob-sub">What do you want to do today?</div>'));
-
-  S._pick=S._pick||{type:null,time:null,energy:null};
-
-  // 1. TYPE
-  view.appendChild(el('<div class="ath-q">1 · Pick your workout</div>'));
-  const typeRow=el('<div class="pickrow"></div>');
-  const myTypes=(S.cfg&&S.cfg.types&&S.cfg.types.length?S.cfg.types:['strength','running','pilates','hiit']);
-  myTypes.forEach(k=>{const C=CATS[k];if(!C)return;
-    const b=el('<button class="pick'+(S._pick.type===k?' sel':'')+'">'+C.emoji+' '+C.label+'</button>');
-    b.addEventListener('click',()=>{S._pick.type=k;viewHomeRefresh()});
-    typeRow.appendChild(b)});
-  view.appendChild(typeRow);
-
-  // 2. TIME
-  view.appendChild(el('<div class="ath-q">2 · How much time?</div>'));
-  const timeRow=el('<div class="pickrow"></div>');
-  [15,30,45,60].forEach(t=>{const b=el('<button class="pick'+(S._pick.time===t?' sel':'')+'">'+(t===60?'60+':t)+' min</button>');
-    b.addEventListener('click',()=>{S._pick.time=t;viewHomeRefresh()});timeRow.appendChild(b)});
-  view.appendChild(timeRow);
-
-  // 3. ENERGY
-  view.appendChild(el('<div class="ath-q">3 · How’s your energy?</div>'));
-  const enRow=el('<div class="pickrow"></div>');
-  [['\ud83d\ude34 Low',35],['\ud83d\ude42 Okay',65],['\u26a1 High',90]].forEach(([lab,sc])=>{
-    const b=el('<button class="pick'+(S._pick.energy===sc?' sel':'')+'">'+lab+'</button>');
-    b.addEventListener('click',()=>{S._pick.energy=sc;viewHomeRefresh()});enRow.appendChild(b)});
-  view.appendChild(enRow);
-
-  // GO
-  const ready=S._pick.type&&S._pick.time&&S._pick.energy;
-  const go=el('<button class="ath-cta" style="margin-top:22px"'+(ready?'':' disabled')+'>Show my workout</button>');
-  if(ready)go.addEventListener('click',()=>{
-    const feel=S._pick.energy,time=S._pick.time;
-    const sleep=feel>=80?8:feel>=50?7:5,sore=feel>=80?1:feel>=50?2:4,stress=feel>=80?1:2;
-    S.readiness[today()]={sleep,sore,stress,rhr:null,score:scoreReadiness(sleep,sore,stress)};
-    S._focusCat=S._pick.type;save();athGenerate(time);
-  });
-  view.appendChild(go);
-}
-function viewHomeRefresh(){view.innerHTML='';viewHome()}
-function athFeel(){
-  view.innerHTML='';
-  view.appendChild(el('<div class="ath-hello">Quick check-in</div>'));
-  view.appendChild(el('<div class="ath-q">How do you feel today?</div>'));
-  const r1=el('<div class="pickrow"></div>');
-  [['\ud83d\ude34 Tired',35],['\ud83d\ude42 Good',65],['\u26a1 Full of energy',90]].forEach(([lab,sc])=>{
-    const b=el('<button class="pick">'+lab+'</button>');
-    b.addEventListener('click',()=>{S._feel=sc;[...r1.children].forEach(c=>c.classList.remove('sel'));b.classList.add('sel')});
-    r1.appendChild(b)});
-  view.appendChild(r1);
-  view.appendChild(el('<div class="ath-q">How much time do you have?</div>'));
-  const r2=el('<div class="pickrow"></div>');
-  [15,30,45].forEach(t=>{const b=el('<button class="pick">'+(t===45?'45+':t)+' min</button>');
-    b.addEventListener('click',()=>{S._time=t;[...r2.children].forEach(c=>c.classList.remove('sel'));b.classList.add('sel')});
-    r2.appendChild(b)});
-  view.appendChild(r2);
-  const go=el('<button class="ath-cta" style="margin-top:20px">Build my workout</button>');
-  go.addEventListener('click',()=>{
-    const feel=S._feel||65,time=S._time||(S.cfg.dur||30);
-    const sleep=feel>=80?8:feel>=50?7:5,sore=feel>=80?1:feel>=50?2:4,stress=feel>=80?1:2;
-    S.readiness[today()]={sleep,sore,stress,rhr:null,score:scoreReadiness(sleep,sore,stress)};
-    save();athGenerate(time);
-  });
-  view.appendChild(go);
-}
-function athGenerate(time){
-  time=time||S._time||(S.cfg.dur||30);
-  view.innerHTML='';
-  view.appendChild(el('<div class="ath-hero" style="text-align:center"><h2>Building your workout\u2026</h2><p class="meta" id="genMsg">Your coach is adapting to how you feel today.</p></div>'));
-  requestBriefingAthlete(time);
-}
-async function requestBriefingAthlete(time){
-  try{
-    const want=S._focusCat?('\n\nUSER REQUESTED ACTIVITY TODAY: '+(CATS[S._focusCat]?CATS[S._focusCat].label:S._focusCat)+'. Build the session around this.'):'';
-    const r=await claudeText(COACH_DIRECTIVES+'\n\nTONE: warm, encouraging, plain language for a general fitness user (not military).'+want+'\n\nDATA FEED:\n'+buildFeed(time));
-    if(!r.coach_note||!r.protocol_type)throw new Error('schema');
-    S.briefing={date:today(),time,r};save();tab='workout';render();
-  }catch(e){
-    const m=document.getElementById('genMsg');
-    if(m)m.textContent='Couldn\u2019t reach the coach. Add a free AI key in Profile, then try again.';
-  }
-}
+function mondayOf(d){const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(12,0,0,0);return x}
+/* ----- PLAN: weekly schedule + monthly overview ----- */
 function viewPlan(){
-  view.appendChild(el('<div class="ath-hello">Your week</div>'));
-  const types=(S.cfg&&S.cfg.types&&S.cfg.types.length?S.cfg.types:['strength','running','pilates','hiit']);
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const wkDays=(S.cfg&&S.cfg.days)||4;
-  const todayIdx=(new Date().getDay()+6)%7; // Mon=0
-  days.forEach((d,i)=>{
-    const isToday=i===todayIdx;
-    if(i>=wkDays){view.appendChild(el('<div class="day-card" style="opacity:.45'+(isToday?';border-color:var(--primary)':'')+'"><div class="dow">'+d+'</div><div class="txt">Rest day</div>'+(isToday?'<span style="color:var(--primary);font-size:11px;font-weight:700">TODAY</span>':'')+'</div>'));return}
-    const k=types[i%types.length];const C=CATS[k]||CATS.strength;
-    view.appendChild(el('<div class="day-card"'+(isToday?' style="border-color:var(--primary);border-width:2px"':'')+'><div class="dow">'+d+'</div><div class="cat-dot" style="background:'+C.color+'"></div>'+
-      '<div class="txt" style="flex:1"><b>'+C.emoji+' '+C.label+'</b><span style="display:block;font-size:12px;color:var(--muted)">'+((S.cfg&&S.cfg.dur)||30)+' min</span></div>'+
-      (isToday?'<span style="color:var(--primary);font-size:11px;font-weight:700">TODAY</span>':'')+'</div>'));
+  seedWeekPlan();
+  const _ns=nextStepBanner();if(_ns)view.appendChild(_ns);
+  const dayLbl=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dowFor=i=>(i+1)%7; // Mon=0 -> getDay 1 ... Sun=6 -> getDay 0
+  const mon=mondayOf(new Date());
+  const tdy=today();
+
+  // ===== WEEKLY SCHEDULE (editable) =====
+  const wk=el('<section class="panel panel-pad"><h2 class="panel-title">WEEKLY PLAN</h2>'+
+    '<p class="panel-note">Assign each weekday. CHANGE cycles Rest → Strength → Conditioning → Endurance. It repeats every week.</p></section>');
+  let plannedWeek=0,doneWeek=0,volWeek=0;
+  dayLbl.forEach((lab,i)=>{
+    const dow=dowFor(i);
+    const dt=new Date(mon);dt.setDate(mon.getDate()+i);const ds=liso(dt);
+    const slot=slotOf(planFor(dow));const isToday=ds===tdy;const isPast=ds<tdy;
+    const done=S.missions.includes(ds);
+    if(slot.train){plannedWeek++;if(done)doneWeek++}
+    volWeek+=dayVolume(ds);
+    let status;
+    if(!slot.train)status='<span style="color:var(--muted)">REST</span>';
+    else if(done)status='<span style="color:var(--success)">✓ DONE</span>';
+    else if(isToday)status='<span style="color:var(--primary)">TODAY</span>';
+    else if(isPast)status='<span style="color:var(--danger)">MISSED</span>';
+    else status='<span style="color:var(--muted)">PLANNED</span>';
+    const card=el('<div class="day-card'+(isToday?' today':'')+'">'+
+      '<div class="dow">'+lab+'</div>'+
+      '<div class="cat-dot" style="background:'+slot.color+'"></div>'+
+      '<div class="dc-body"><b>'+slot.label+'</b><span>'+ds.slice(5)+' · '+status+'</span></div>'+
+      '<button class="dc-pick">CHANGE</button></div>');
+    card.querySelector('.dc-pick').addEventListener('click',()=>{
+      const idx=PLAN_SLOTS.findIndex(s=>s.k===planFor(dow));
+      S.weekPlan[dow]=PLAN_SLOTS[(idx+1)%PLAN_SLOTS.length].k;syncPlannedWk();buzz(20);render();
+    });
+    wk.appendChild(card);
   });
-  const adj=el('<button class="ath-cta" style="margin-top:18px">Start today\u2019s workout</button>');
-  adj.addEventListener('click',()=>{tab='home';render()});
-  view.appendChild(adj);
-}
-function viewWorkout(){
-  const B=(S.briefing&&S.briefing.date===today())?S.briefing.r:null;
-  if(!B){
-    view.appendChild(el('<div class="ath-hello">Today\u2019s workout</div>'));
-    view.appendChild(el('<div class="ob-sub">Let\u2019s build one based on how you feel.</div>'));
-    const go=el('<button class="ath-cta" style="margin-top:12px">Build my workout</button>');
-    go.addEventListener('click',()=>{tab='home';athFeel()});view.appendChild(go);
-    return;
+  view.appendChild(wk);
+
+  // ===== THIS WEEK OVERVIEW =====
+  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">THIS WEEK</h2>'+
+    '<div class="vr-macros" style="grid-template-columns:repeat(3,1fr);margin:10px 0 0">'+
+    '<div><b class="num">'+doneWeek+' / '+plannedWeek+'</b><span>SESSIONS DONE</span></div>'+
+    '<div><b class="num '+(plannedWeek&&doneWeek>=plannedWeek?'t-good':'')+'">'+(plannedWeek?Math.round(doneWeek/plannedWeek*100):0)+'%</b><span>ADHERENCE</span></div>'+
+    '<div><b class="num">'+(volWeek/1000).toFixed(1)+' T</b><span>TONNAGE</span></div></div></section>'));
+
+  // ===== MONTH CALENDAR OVERVIEW =====
+  const now=new Date();const y=now.getFullYear(),mo=now.getMonth();
+  const first=new Date(y,mo,1);const lead=(first.getDay()+6)%7; // Mon-based leading blanks
+  const dim=new Date(y,mo+1,0).getDate();
+  const monthName=now.toLocaleString('en-US',{month:'long',year:'numeric'}).toUpperCase();
+  let cal='<div class="month-cal">'+['M','T','W','T','F','S','S'].map(h=>'<div class="mc-h">'+h+'</div>').join('');
+  for(let i=0;i<lead;i++)cal+='<div class="mc-d pad"></div>';
+  let mPlan=0,mDone=0,mVol=0;
+  for(let d=1;d<=dim;d++){
+    const dt=new Date(y,mo,d,12);const ds=liso(dt);const dow=dt.getDay();
+    const slot=slotOf(planFor(dow));const done=S.missions.includes(ds);const isToday=ds===tdy;const isPast=ds<tdy;
+    if(slot.train&&ds<=tdy){mPlan++;if(done)mDone++}
+    mVol+=dayVolume(ds);
+    let dot='';
+    if(slot.train)dot=done?'done':(isPast?'miss':'plan');
+    cal+='<div class="mc-d'+(isToday?' today':'')+'"><span>'+d+'</span><i class="mc-dot'+(dot?' '+dot:'')+'"'+(dot?'':' style="opacity:0"')+'></i></div>';
   }
-  view.appendChild(el('<div class="ath-hello">'+esc(B.protocol_type==='LIFT'?'Strength Session':B.protocol_type)+'</div>'));
-  if(B.coach_note)view.appendChild(el('<div class="ob-sub">'+esc(B.coach_note)+'</div>'));
-  (B.blocks||[]).forEach((b,bi)=>{
-    const card=el('<div class="ath-hero" style="margin-top:12px"><span class="kind" style="background:'+CATS.strength.color+'">BLOCK '+esc(b.id||(bi+1))+'</span>'+
-      '<div class="meta">'+esc(b.station||'')+'</div>'+
-      (b.exercises||[]).map(x=>'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>'+esc(x.name)+'</span><span style="color:var(--muted)">'+esc(x.target||'')+'</span></div>').join('')+'</div>');
-    view.appendChild(card);
-  });
-  if(B.recovery&&B.recovery.length)view.appendChild(el('<div class="ath-hero" style="margin-top:12px"><h2 style="font-size:18px">Recovery</h2>'+B.recovery.map(x=>'<div style="padding:6px 0;color:var(--muted)">\u2022 '+esc(x)+'</div>').join('')+'</div>'));
-  const done=el('<button class="ath-cta" style="margin-top:16px">\u2713 Mark Workout Complete</button>');
-  done.addEventListener('click',()=>athFeedback());
-  view.appendChild(done);
-}
-function athFeedback(){
-  view.innerHTML='';
-  view.appendChild(el('<div class="ath-hello">Nice work \ud83d\udcaa</div>'));
-  view.appendChild(el('<div class="ath-q">How was it?</div>'));
-  let intensity=null,completion=null;
-  const r1=el('<div class="pickrow"></div>');
-  [['\ud83d\ude05 Too easy','easy'],['\ud83d\ude42 Just right','right'],['\ud83e\udd75 Too hard','hard']].forEach(([lab,v])=>{
-    const b=el('<button class="pick">'+lab+'</button>');b.addEventListener('click',()=>{intensity=v;[...r1.children].forEach(c=>c.classList.remove('sel'));b.classList.add('sel')});r1.appendChild(b)});
-  view.appendChild(r1);
-  view.appendChild(el('<div class="ath-q">Did you complete it?</div>'));
-  const r2=el('<div class="pickrow"></div>');
-  [['\u2705 Fully','full'],['\u26a0 Partially','partial'],['\u274c No','no']].forEach(([lab,v])=>{
-    const b=el('<button class="pick">'+lab+'</button>');b.addEventListener('click',()=>{completion=v;[...r2.children].forEach(c=>c.classList.remove('sel'));b.classList.add('sel')});r2.appendChild(b)});
-  view.appendChild(r2);
-  const save2=el('<button class="ath-cta" style="margin-top:20px">Save & finish</button>');
-  save2.addEventListener('click',()=>{
-    S.feedback=S.feedback||[];
-    S.feedback.push({date:today(),intensity,completion});
-    if(completion==='full'&&!S.missions.includes(today())){S.missions.push(today());
-      S.missionLog.push({date:today(),profile:S.profile,label:'Athlete session',sets:0,volume:0,timeUsed:0,note:null})}
-    applyAdaptation();save();tab='home';render();toast('Logged. See you next session \ud83d\udc4b');
-  });
-  view.appendChild(save2);
-}
-function applyAdaptation(){
-  const fb=(S.feedback||[]).slice(-5);
-  const easy=fb.filter(f=>f.intensity==='easy').length;
-  const hard=fb.filter(f=>f.intensity==='hard').length;
-  const partial=fb.filter(f=>f.completion==='partial'||f.completion==='no').length;
-  const lvls={Beginner:0,Intermediate:1,Advanced:2};const names=['Beginner','Intermediate','Advanced'];
-  let cur=lvls[(S.cfg&&S.cfg.exp)||'Intermediate'];
-  if(easy>=3){cur=Math.min(2,cur+1);S.cfg.exp=names[cur];toast('Leveling you up \u2014 nice progress')}
-  else if(hard>=2){cur=Math.max(0,cur-1);S.cfg.exp=names[cur];toast('Easing it back so you can stay consistent')}
-  if(partial>=3&&S.cfg.dur>15){S.cfg.dur=Math.max(15,S.cfg.dur-15);toast('Shortening sessions to fit your week')}
-}
-function viewProgress(){
-  view.appendChild(el('<div class="ath-hello">Your progress</div>'));
-  const totalMin=S.missionLog.reduce((a,m)=>a+Math.round((m.timeUsed||0)/60),0)+(S.feedback?S.feedback.length*((S.cfg&&S.cfg.dur)||30):0);
-  const cons=Math.min(100,Math.round(missionsLast7()/((S.cfg&&S.cfg.days)||4)*100));
-  // two numbers that matter, big
-  view.appendChild(el('<div class="score-grid">'+
-    '<div class="score-card"><div class="ring" style="color:'+CATS.strength.color+';font-size:40px">'+S.missions.length+'</div><div class="lbl">workouts done</div></div>'+
-    '<div class="score-card"><div class="ring" style="color:#F59E0B;font-size:40px">'+streakDays()+'</div><div class="lbl">day streak</div></div></div>'));
-  // quiet secondary line
-  view.appendChild(el('<p class="ob-sub" style="margin-top:12px;text-align:center">'+totalMin+' total minutes \u00b7 '+cons+'% consistency this week</p>'));
-  // achievements as one tidy block
-  view.appendChild(el('<div class="ath-q">Achievements</div>'));
-  const achs=[['First workout',S.missions.length>=1],['10 workouts',S.missions.length>=10],['7-day streak',streakDays()>=7],['20 sessions',S.missions.length>=20]];
-  achs.forEach(([lab,on])=>view.appendChild(el('<div class="ach'+(on?'':' locked')+'">'+(on?'\ud83c\udfc6':'\ud83d\udd12')+' '+lab+'</div>')));
-}
-function viewProfileAth(){
-  view.appendChild(el('<div class="ath-hello">Profile</div>'));
-  const C=S.cfg||{};
-  view.appendChild(el('<div class="ath-hero"><div class="meta">Signed in as</div><h2 style="font-size:18px">'+esc(FB.user&&FB.user.email||'Local athlete')+'</h2>'+
-    '<div style="color:var(--muted);font-size:14px;margin-top:8px">'+esc((C.types||[]).map(k=>CATS[k]?CATS[k].emoji+' '+CATS[k].label:k).join('  '))+'<br>'+(C.days||4)+' days/week \u00b7 '+(C.dur||30)+' min preferred</div></div>'));
-  // AI key (kept — needed for workouts)
-  const keyWrap=el('<div class="ath-hero" style="margin-top:12px"><div class="meta">AI Coach key</div>'+
-    '<input id="athKey" type="password" placeholder="AIza\u2026 or sk-ant-\u2026" style="margin-top:8px" value="'+esc(S.apiKey||'')+'">'+
-    '<button class="ath-cta" id="athKeySave" style="margin-top:10px">Save key</button></div>');
-  keyWrap.querySelector('#athKeySave').addEventListener('click',()=>{S.apiKey=keyWrap.querySelector('#athKey').value.trim();save();toast('Key saved')});
-  view.appendChild(keyWrap);
-  // quiet secondary actions
-  const reon=el('<button class="ath-cta" style="margin-top:12px;background:var(--surface2);color:var(--fg)">Redo setup</button>');
-  reon.addEventListener('click',()=>{showOnboarding()});view.appendChild(reon);
-  const swap=el('<button class="ath-cta" style="margin-top:8px;background:var(--surface2);color:var(--fg)">Switch to Commander mode</button>');
-  swap.addEventListener('click',()=>{S.cfg.persona='commander';save();tab='mission';renderNav();render();toast('COMMANDER MODE ENGAGED')});
-  view.appendChild(swap);
-  const out=el('<button class="ath-cta" style="margin-top:8px;background:transparent;color:var(--danger);border:1px solid var(--danger)">Sign out</button>');
-  out.addEventListener('click',()=>{if(FB.auth){FB.auth.signOut().then(()=>location.reload())}else location.reload()});
-  view.appendChild(out);
+  cal+='</div>';
+  const monthSec=el('<section class="panel panel-pad"><h2 class="panel-title">'+monthName+'</h2>'+cal+
+    '<div class="plan-legend"><span><i style="background:var(--success);border-color:var(--success)"></i>Done</span>'+
+    '<span><i style="background:var(--danger);border-color:var(--danger)"></i>Missed</span>'+
+    '<span><i style="border-color:var(--primary)"></i>Planned</span></div>'+
+    '<div class="vr-macros" style="grid-template-columns:repeat(3,1fr);margin:12px 0 0">'+
+    '<div><b class="num">'+mDone+' / '+mPlan+'</b><span>SESSIONS TO DATE</span></div>'+
+    '<div><b class="num '+(mPlan&&mDone>=mPlan?'t-good':'')+'">'+(mPlan?Math.round(mDone/mPlan*100):0)+'%</b><span>MONTH ADHERENCE</span></div>'+
+    '<div><b class="num">'+(mVol/1000).toFixed(1)+' T</b><span>TONNAGE</span></div></div></section>');
+  view.appendChild(monthSec);
+
+  const cta=el('<button class="btn wide primary mt">GO TO TODAY’S MISSION</button>');
+  cta.addEventListener('click',()=>{tab='mission';render()});
+  view.appendChild(cta);
 }
 function nextStep(){
   // returns {n,label,action,go} or null when day complete
@@ -1198,12 +946,11 @@ function nextStep(){
   const ready=!!todayReadiness();
   const brief=!!(S.briefing&&S.briefing.date===today());
   const missionDone=missionCompleteToday();
-  const ath=persona()==='athlete';
-  if(!wRow) return {n:1,label:'START HERE',action:ath?'Log this morning\'s weight':'LOG MORNING WEIGH-IN',go:()=>{if(ath){tab='profile'}else{tab='data'}render();flashFind('#wIn,#wLog');}};
-  if(!ready) return {n:2,label:'NEXT',action:ath?'Quick check-in: how do you feel?':'READINESS CHECK-IN',go:()=>{if(ath){tab='home';athFeel()}else{tab='mission';render();flashFind('#rGo');}}};
-  if(!brief) return {n:3,label:'NEXT',action:ath?'Build today\'s workout':'REQUEST TODAY\'S BRIEFING',go:()=>{if(ath){tab='home';athFeel()}else{tab='mission';render();flashFind('#bqGo');}}};
-  if(!missionDone) return {n:4,label:'NOW',action:ath?'Start your workout':'START THE MISSION CLOCK',go:()=>{if(ath){tab='workout'}else{tab='mission';render();flashFind('#clockToggle');}}};
-  return {n:5,label:'DONE',action:ath?'All done today — great work 👏':'DAY COMPLETE. RECOVER.',done:true,go:null};
+  if(!wRow) return {n:1,label:'START HERE',action:'LOG MORNING WEIGH-IN',go:()=>{tab='data';render();flashFind('#wIn,#wLog');}};
+  if(!ready) return {n:2,label:'NEXT',action:'READINESS CHECK-IN',go:()=>{tab='mission';render();flashFind('#rGo');}};
+  if(!brief) return {n:3,label:'NEXT',action:'REQUEST TODAY\'S BRIEFING',go:()=>{tab='mission';render();flashFind('#bqGo');}};
+  if(!missionDone) return {n:4,label:'NOW',action:'TRAIN — LOG YOUR BLOCKS',go:()=>{tab='mission';render();flashFind('.block-head');}};
+  return {n:5,label:'DONE',action:'DAY COMPLETE. RECOVER.',done:true,go:null};
 }
 function flashFind(sel){setTimeout(()=>{const e=document.querySelector(sel.split(',')[0]);if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'center'});},120)}
 function nextStepBanner(){
@@ -1220,23 +967,7 @@ function nextStepBanner(){
 let tab='mission';
 const view=$('#view');
 function render(){
-  const isAth=persona()==='athlete';
-  document.body.classList.toggle('athlete',isAth);
-  document.body.classList.toggle('war',!isAth&&!!S.war);
-  // hide tactical header + clock + hydro banner in athlete mode
-  const tb=document.querySelector('.topbar'),hud=document.getElementById('hud'),hb0=document.getElementById('hydroBanner');
-  if(tb)tb.style.display=isAth?'none':'';
-  if(hud)hud.style.display=isAth?'none':'';
-  if(isAth){if(hb0)hb0.style.display='none';
-    if(!['home','plan','workout','progress','profile'].includes(tab))tab='home';
-    document.querySelectorAll('.nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-selected',b.dataset.tab===tab)});
-    view.innerHTML='';
-    ({home:viewHome,plan:viewPlan,workout:viewWorkout,progress:viewProgress,profile:viewProfileAth})[tab]();
-    save();return;
-  }
-  if(hb0)hb0.style.display='';
-  if(['vision','hiit'].includes(tab))tab='mission';
-  if(!['mission','fuel','data','pilates','profile'].includes(tab))tab='mission';
+  if(!['mission','fuel','plan','data','profile'].includes(tab))tab='mission';
   const kg=currentKg();
   $('#hdrKg').textContent=kg!=null?kg.toFixed(1):'--.-';
   const d=kg!=null?kg-cfgT():null;const hd=$('#hdrDelta');
@@ -1246,7 +977,7 @@ function render(){
   if(liftDayToday()&&ml<WATER_TARGET)hb.appendChild(el('<div class="banner" role="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c3 4 6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 3-6 6-10z"/></svg><span>COMPOUND DAY. HYDRATION '+(ml/1000).toFixed(1)+' L — '+((WATER_TARGET-ml)/1000).toFixed(1)+' L SHORT OF 3.0 L. DRINK.</span></div>'));
   document.querySelectorAll('.nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-selected',b.dataset.tab===tab)});
   view.innerHTML='';
-  ({mission:viewMission,fuel:viewFuel,data:viewData,pilates:viewPilates,profile:viewProfileCmd})[tab]();
+  ({mission:viewMission,fuel:viewFuel,plan:viewPlan,data:viewData,profile:viewProfileCmd})[tab]();
   save()}
 
 /* ---------- MISSION ---------- */
@@ -1271,12 +1002,7 @@ function viewMission(){
       toast('READINESS '+sc+'% — '+(sc>=80?'GREEN. LOADS +5%.':sc<50?'RED. LOADS −5%. SURVIVE TODAY.':'AMBER. STANDARD LOADS.'));render()});
     view.appendChild(rc);
   }else{
-    if(r.score<50&&secondsLeft===MISSION_SECONDS&&!running){
-      const capBtn=el('<button class="btn wide" style="border-color:var(--danger);color:var(--danger)">READINESS RED — TAP TO CUT TODAY\'S CAP TO 45:00</button>');
-      capBtn.addEventListener('click',()=>{const c=clockState();secondsLeft=2700;c.pausedLeft=2700;c.end=null;save();renderClock();toast('CAP CUT TO 45:00 — SURVIVE TODAY, CONQUER THURSDAY');render()});
-      view.appendChild(capBtn);
-    }
-    view.appendChild(el('<div class="orders '+(r.score>=80?'good':r.score<50?'danger':'')+'">READINESS '+r.score+'% · SLEEP '+r.sleep+'H · SORE '+r.sore+'/5 · STRESS '+r.stress+'/5'+(r.rhr?' · RHR '+r.rhr:'')+' — '+(r.score>=80?'LOADS +5%':r.score<50?'LOADS −5%':'STANDARD LOADS')+'</div>'));
+    view.appendChild(el('<div class="orders '+(r.score>=80?'good':r.score<50?'danger':'')+'">READINESS '+r.score+'% · SLEEP '+r.sleep+'H · SORE '+r.sore+'/5 · STRESS '+r.stress+'/5'+(r.rhr?' · RHR '+r.rhr:'')+' — '+(r.score>=80?'LOADS +5%':r.score<50?'LOADS −5%. SURVIVE TODAY.':'STANDARD LOADS')+'</div>'));
   }
   // coach's brain briefing
   if(S.briefing&&S.briefing.date===today()){try{view.appendChild(briefingCard())}catch(e){S.briefing=null;render();return}}
@@ -1312,13 +1038,17 @@ function viewMission(){
     const sec=el('<section class="panel"></section>');
     const head=el('<header class="block-head"><div class="block-id" aria-hidden="true">'+esc(block.id)+'</div>'+
       '<div class="block-meta"><h2>BLOCK '+esc(block.id)+'</h2><span class="station">'+esc(block.station)+'</span></div>'+
-      '<button class="rounds" aria-label="Block '+esc(block.id)+': '+done+' of 3 rounds done. Tap to advance.">'+
-      [0,1,2].map(i=>'<span class="pip '+(i<done?'filled':'')+'"></span>').join('')+
-      '<span class="rounds-label">'+done+'/3</span></button></header>');
-    head.querySelector('.rounds').addEventListener('click',()=>{
-      const next=((S.rounds[key]||0)+1)%4;S.rounds[key]=next;
-      buzz(50);if(next>=1&&next<=3)startRest(next<3?'BLOCK '+block.id+' — ROUND '+(next+1)+' NEXT':'BLOCK '+block.id+' COMPLETE — ADVANCE');
-      render()});
+      '<div class="roundctl" role="group" aria-label="Block '+esc(block.id)+' rounds: '+done+' of 3">'+
+      '<button class="rbtn minus" type="button" aria-label="One less round"'+(done<=0?' disabled':'')+'>−</button>'+
+      '<span class="pips">'+[0,1,2].map(i=>'<span class="pip '+(i<done?'filled':'')+'"></span>').join('')+'</span>'+
+      '<span class="rounds-label">'+done+'/3</span>'+
+      '<button class="rbtn plus" type="button" aria-label="One more round"'+(done>=3?' disabled':'')+'>+</button></div></header>');
+    const setRounds=n=>{n=Math.max(0,Math.min(3,n));if(n===done){if(done>=3){beep(440,.12);toast('BLOCK '+block.id+' ALREADY COMPLETE')}return}
+      S.rounds[key]=n;buzz(40);
+      if(n>done){startRest(n<3?'BLOCK '+block.id+' — ROUND '+(n+1)+' NEXT':'BLOCK '+block.id+' COMPLETE — ADVANCE')}
+      render()};
+    head.querySelector('.plus').addEventListener('click',()=>setRounds(done+1));
+    head.querySelector('.minus').addEventListener('click',()=>setRounds(done-1));
     sec.appendChild(head);
     const ol=el('<ol style="list-style:none;margin:0;padding:0"></ol>');
     block.exercises.forEach((ex,i)=>{
@@ -1403,9 +1133,11 @@ function viewMission(){
     (missionCompleteToday()?'MISSION '+String(S.missions.length).padStart(3,'0')+' — COMPLETE':allBlocksDone()?'CONFIRM MISSION COMPLETE':'COMPLETE ALL BLOCKS TO CLOSE MISSION')+'</button>');
   doneBtn.addEventListener('click',()=>{if(allBlocksDone()&&!missionCompleteToday()){
     S.missions.push(today());
+    const tsT=S.sets.filter(s=>s.date===today()).map(s=>s.ts).filter(Boolean);
+    const timeUsed=tsT.length>=2?Math.round((Math.max(...tsT)-Math.min(...tsT))/1000):0;
     S.missionLog.push({date:today(),profile:S.profile,label:currentProgram().label||S.profile.toUpperCase(),
       sets:S.sets.filter(s=>s.date===today()).length,volume:Math.round(dayVolume(today())),
-      timeUsed:MISSION_SECONDS-secondsLeft,rest:avgRest(today()),note:(noteI&&noteI.value.trim())||null});
+      timeUsed:timeUsed,rest:avgRest(today()),note:(noteI&&noteI.value.trim())||null});
     beep(660,.25);render()}});
   view.appendChild(doneBtn);
   if(SR){const fab=el('<button class="fab" id="voiceFab" aria-label="Voice log a set"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>');
@@ -1655,24 +1387,7 @@ function viewData(){
     '<div><b class="num">'+missionsLast7()+'</b><span>LAST 7 DAYS</span></div>'+
     '<div><b class="num" style="color:'+(proteinStreak()>0?'var(--success)':'var(--danger)')+'">'+proteinStreak()+'</b><span>PROTEIN STREAK</span></div>'+
     '<div><b class="num">'+(adherence28()!=null?adherence28()+'%':'—')+'</b><span>PLAN ADHERENCE 28D</span></div></div>'+
-    (adherence28()==null?'<p class="gauge-note mt">SET PLANNED DAYS IN THE OPS CALENDAR TO TRACK ADHERENCE.</p>':'')+'</section>'));
-
-  // week calendar
-  const cal=el('<section class="panel panel-pad"><h2 class="panel-title">OPS CALENDAR — THIS WEEK</h2>'+
-    '<p class="panel-note">Tap a weekday to mark it planned. Green = mission executed.</p><div class="cal"></div></section>');
-  const calBox=cal.querySelector('.cal');
-  const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
-  for(let i=0;i<7;i++){
-    const dt=new Date(mon);dt.setDate(mon.getDate()+i);
-    const ds=liso(dt);const dow=dt.getDay();
-    const done=S.missions.includes(ds);const plan=S.plannedWk.includes(dow);
-    const b=el('<button aria-pressed="'+plan+'"><span>'+DOW[dow]+'</span><span class="num">'+ds.slice(8)+'</span>'+
-      '<span class="dot '+(done?'done':plan?'plan':'')+'"></span></button>');
-    b.addEventListener('click',()=>{
-      if(S.plannedWk.includes(dow))S.plannedWk=S.plannedWk.filter(x=>x!==dow);else S.plannedWk.push(dow);
-      render()});
-    calBox.appendChild(b)}
-  view.appendChild(cal);
+    (adherence28()==null?'<p class="gauge-note mt">SET YOUR WEEKLY SCHEDULE IN THE PLAN TAB TO TRACK ADHERENCE.</p>':'')+'</section>'));
 
   // weight chart
   if(S.weights.length>=2)view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">WEIGHT TREND → '+cfgT().toFixed(1)+'</h2>'+weightChart()+'</section>'));
@@ -1765,8 +1480,7 @@ function viewData(){
 
 function viewProfileCmd(){
   view.appendChild(el('<h3 class="sub">OPERATOR PROFILE &amp; SYSTEM</h3>'));
-  const swap=el('<section class="panel panel-pad"><h2 class="panel-title">PERSONA</h2><p class="panel-note">Commander mode active. Switch to the friendly Athlete experience anytime — your data follows.</p><button class="btn wide mt" id="toAth">SWITCH TO ATHLETE MODE</button><button class="btn wide mt" id="reOnb">REDO ONBOARDING</button></section>');
-  swap.querySelector('#toAth').addEventListener('click',()=>{S.cfg.persona='athlete';save();tab='home';renderNav();render();toast('ATHLETE MODE')});
+  const swap=el('<section class="panel panel-pad"><h2 class="panel-title">SETUP</h2><p class="panel-note">Local, single-operator build. All data lives on this device — back it up below.</p><button class="btn wide mt" id="reOnb">REDO ONBOARDING</button></section>');
   swap.querySelector('#reOnb').addEventListener('click',()=>showOnboarding());
   view.appendChild(swap);
   // squad
@@ -1805,30 +1519,11 @@ function viewProfileCmd(){
       else toast('PERMISSION DENIED BY DEVICE')}catch(e){toast('PERMISSION DENIED BY DEVICE')}});
   view.appendChild(rp);
 
-  // account
-  const cloudCfg=fbConfig();
-  const acct=el('<section class="panel panel-pad"><h2 class="panel-title">OPERATOR ACCOUNT</h2>'+
-    (FB.user?'<p class="panel-note">Signed in: <b>'+esc(FB.user.email||FB.user.uid)+'</b> — state syncs to your private cloud doc. Every operator gets isolated objectives, logs, and coach feed.</p><button class="btn wide mt" id="acOut">SIGN OUT</button>'
-     :cloudCfg?'<p class="panel-note">Account system armed. Currently LOCAL MODE on this device.</p><button class="btn primary wide mt" id="acIn">SIGN IN / CREATE OPERATOR</button>'
-     :'<p class="panel-note">Multi-user OFF — no backend configured. Create a free Firebase project, then paste its config object below to arm Google / email / Apple sign-in with per-operator cloud sync.</p>')+
-    '<label class="f mt"><span>FIREBASE CONFIG (PASTE OBJECT)</span><input id="acCfg" placeholder="{ apiKey: ..., projectId: ... }"></label>'+
-    '<button class="btn wide mt" id="acSave">SAVE CONFIG + RELOAD</button></section>');
-  const aOut=acct.querySelector('#acOut');if(aOut)aOut.addEventListener('click',()=>{try{localStorage.removeItem('ha-skip-auth')}catch(e){};FB.auth.signOut().then(()=>location.reload())});
-  const aIn=acct.querySelector('#acIn');if(aIn)aIn.addEventListener('click',()=>{try{localStorage.removeItem('ha-skip-auth')}catch(e){};if(fbReady())showAuthGate();else location.reload()});
-  acct.querySelector('#acSave').addEventListener('click',()=>{
-    try{const cfg=parseFbConfigText(acct.querySelector('#acCfg').value);
-      if(!cfg.apiKey||!cfg.projectId)throw new Error('missing fields');
-      localStorage.setItem('ha-fb-config',JSON.stringify(cfg));toast('CONFIG ARMED — RELOADING');setTimeout(()=>location.reload(),800)}
-    catch(e){toast('CONFIG PARSE FAILED — PASTE THE WHOLE firebaseConfig OBJECT')}});
-  view.appendChild(acct);
-
-  // war mode + exports
+  // objectives + data command
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
-    '<button class="btn wide mt" id="warBtn">'+(S.war?'WAR MODE: ON — TAP TO STAND DOWN':'WAR MODE: OFF — TAP TO ENGAGE (PRE-DAWN THEME, BIG TARGETS)')+'</button>'+
-    '<p class="api-note">BUILD V9.4 · ATHLETE PLAN/PROGRESS/PROFILE SIMPLIFIED</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V10 · LOCAL-ONLY · SINGLE OPERATOR</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
-  dc.querySelector('#warBtn').addEventListener('click',()=>{S.war=!S.war;render()});
   dc.querySelector('#cfgSave').addEventListener('click',()=>{
     S.cfg.target=Number(dc.querySelector('#cT').value)||S.cfg.target;
     S.cfg.kcal=Number(dc.querySelector('#cK').value)||S.cfg.kcal;
@@ -1935,76 +1630,6 @@ function transitionPanel(){
   return p}
 
 
-/* ---------- PILATES MATWORK (V8.1) ---------- */
-const PILATES={
- beginner:{label:'BEGINNER — יסודות',items:[
-  {n:'The Hundred',he:'המאה',reps:'100 ספירות (10 נשימות)'},
-  {n:'Roll Up',he:'גלגול מעלה',reps:'5–8'},
-  {n:'Single Leg Circles',he:'מעגלי רגל בודדת',reps:'5 לכל כיוון × 2 רגליים'},
-  {n:'Rolling Like a Ball',he:'גלגול ככדור',reps:'6–8'},
-  {n:'Single Leg Stretch',he:'מתיחת רגל בודדת',reps:'8–10 לכל רגל'},
-  {n:'Double Leg Stretch',he:'מתיחת שתי רגליים',reps:'6–8'},
-  {n:'Spine Stretch Forward',he:'מתיחת עמוד שדרה קדימה',reps:'3–5'}]},
- intermediate:{label:'INTERMEDIATE — ביניים',items:[
-  {n:'Single Straight Leg Stretch (Scissors)',he:'מספריים',reps:'6–8 לכל רגל'},
-  {n:'Double Straight Leg Stretch',he:'מתיחת רגליים ישרות',reps:'6–10'},
-  {n:'Criss-Cross',he:'אופניים / הצלבה',reps:'6–8 לכל צד'},
-  {n:'Open Leg Rocker',he:'נדנדה ברגליים פתוחות',reps:'6'},
-  {n:'Corkscrew',he:'חולץ פקקים',reps:'3 לכל כיוון'},
-  {n:'Saw',he:'מסור',reps:'3–5 לכל צד'},
-  {n:'Swan / Swan Dive',he:'ברבור',reps:'4–6'},
-  {n:'Single Leg Kick',he:'בעיטת רגל בודדת',reps:'4–6 לכל רגל'},
-  {n:'Double Leg Kick',he:'בעיטת שתי רגליים',reps:'4–6'},
-  {n:'Neck Pull',he:'משיכת צוואר',reps:'4–6'},
-  {n:'Side Kick Series',he:'סדרת בעיטות צד',reps:'8–10 לכל תנועה'},
-  {n:'Teaser (1)',he:'טיזר ראשון',reps:'3–5'},
-  {n:'Seal',he:'כלב ים',reps:'6–8'}]},
- advanced:{label:'ADVANCED — מתקדם',items:[
-  {n:'Jackknife',he:'אולר',reps:'3–5'},
-  {n:'Teaser (2 & 3)',he:'טיזר שני ושלישי',reps:'3–5'},
-  {n:'Hip Circles / Hip Twist',he:'מעגלי ירך',reps:'3 לכל כיוון'},
-  {n:'Swimming',he:'שחייה',reps:'20–30 ספירות'},
-  {n:'Leg Pull Front',he:'משיכת רגל קדמית',reps:'3–5 לכל רגל'},
-  {n:'Leg Pull Back',he:'משיכת רגל אחורית',reps:'3–5 לכל רגל'},
-  {n:'Kneeling Side Kick',he:'בעיטת צד בכריעה',reps:'6–8 לכל צד'},
-  {n:'Side Bend / Twist',he:'כיפוף צד',reps:'3–5 לכל צד'},
-  {n:'Boomerang',he:'בומרנג',reps:'4–6'},
-  {n:'Crab',he:'סרטן',reps:'6'},
-  {n:'Rocking',he:'התנדנדות',reps:'6–8'},
-  {n:'Control Balance',he:'איזון שליטה',reps:'3–5 לכל רגל'},
-  {n:'Push Up (Pilates)',he:'שכיבת סמיכה פילאטיס',reps:'3–5'}]}
-};
-function viewPilates(){
-  view.appendChild(el('<div class="orders">PILATES MATWORK · רפרטואר קלאסי של ג\u05f3וזף · סדר מקורי · נשימה מבוקרת · מרכז (Powerhouse) פעיל לאורך כל תרגיל</div>'));
-  const order=['beginner','intermediate','advanced'];
-  order.forEach((lvl,li)=>{
-    const L=PILATES[lvl];
-    const sec=el('<section class="panel"></section>');
-    sec.appendChild(el('<header class="block-head"><div class="block-id" aria-hidden="true">'+(li+1)+'</div>'+
-      '<div class="block-meta"><h2>'+esc(L.label)+'</h2><span class="station">'+L.items.length+' תרגילים</span></div></header>'));
-    const ol=el('<ol style="list-style:none;margin:0;padding:0"></ol>');
-    L.items.forEach((ex,i)=>{
-      const key='pil.'+lvl+'.'+i;
-      const done=S.pilates&&S.pilates[key];
-      const li2=el('<li class="exercise" style="cursor:pointer">'+
-        '<div class="ex-line">'+
-        '<span class="ex-index">'+(i+1)+'</span>'+
-        '<span class="ex-name">'+esc(ex.n)+'</span>'+
-        '<span class="ex-tag '+(lvl==='beginner'?'':lvl==='advanced'?'core':'')+'">'+(lvl==='beginner'?'L1':lvl==='intermediate'?'L2':'L3')+'</span>'+
-        '<span class="ex-target num">'+esc(ex.reps)+'</span>'+
-        '<span class="ex-last" style="color:var(--muted)">'+esc(ex.he)+'</span>'+
-        '</div>'+
-        '<div class="ex-actions" style="margin-top:8px"><button class="btn sm '+(done?'success':'')+'" type="button">'+(done?'\u2713 הושלם היום':'סמן כהושלם')+'</button></div></li>');
-      li2.querySelector('button').addEventListener('click',()=>{
-        S.pilates=S.pilates||{};
-        if(S.pilates[key]===today())delete S.pilates[key];else S.pilates[key]=today();
-        save();buzz(30);render()});
-      ol.appendChild(li2)});
-    sec.appendChild(ol);view.appendChild(sec)});
-  const doneToday=Object.values(S.pilates||{}).filter(d=>d===today()).length;
-  view.appendChild(el('<p class="footrule">הושלמו היום: '+doneToday+' תרגילים. הרפרטואר הקלאסי מתורגל לפי הסדר — איכות תנועה ושליטה לפני כמות. עצור בכאב חד או בלחץ על הצוואר/גב תחתון.</p>'));
-}
-
 /* ---------- HIIT ---------- */
 let hiit={running:false,phase:'READY',t:0,round:0,total:6,timer:null};
 function viewHiit(){viewHiitInto(view)}
@@ -2021,10 +1646,9 @@ function viewHiitInto(view){
     '<div class="panel-pad" style="padding-top:0"><div class="row">'+
     '<label class="f"><span>ROUNDS</span><select id="hRounds">'+[6,7,8].map(n=>'<option '+(n===hiit.total?'selected':'')+'>'+n+'</option>').join('')+'</select></label>'+
     '<button class="btn primary" id="hStart" style="flex:2">'+(hiit.running?'ABORT':'START BONUS BLOCK')+'</button></div>'+
-    '<p class="footrule mt">Strictly OUTSIDE the 60-minute lifting window. If the mission clock is live, this stays shut.</p></div></section>');
+    '<p class="footrule mt">Conditioning finisher. Run it after your lifting blocks, not during.</p></div></section>');
   stage.querySelector('#hStart').addEventListener('click',()=>{
     if(hiit.running){stopHiit();render();return}
-    if(running){beep(220,.3);toast('LIFTING CLOCK IS LIVE. BONUS BLOCK DENIED.');return}
     hiit.total=Number(stage.querySelector('#hRounds').value);
     hiit.running=true;hiit.start=Date.now();hiit.round=1;hiit.phase='WORK';hiit.t=30;
     beep(880,.2);buzz(100);lockScreen();
@@ -2056,8 +1680,9 @@ document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',(
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})})}
 function applyDefaults(){
   S.missionLog=S.missionLog||[];S.hiitLog=S.hiitLog||[];S.readiness=S.readiness||{};S.templates=S.templates||[];
-  S.measures=S.measures||[];S.photos=S.photos||[];S.plannedWk=S.plannedWk||[];S.squadBoard=S.squadBoard||[];
-  S.swaps=S.swaps||{};S.pilates=S.pilates||{};S.feedback=S.feedback||[];S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
+  S.measures=S.measures||[];S.photos=S.photos||[];S.plannedWk=S.plannedWk||[];S.weekPlan=S.weekPlan||{};S.squadBoard=S.squadBoard||[];
+  S.swaps=S.swaps||{};S.feedback=S.feedback||[];S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
+  seedWeekPlan();
   if(!S.startDate)S.startDate=S.weights.length?S.weights[0].date:today()}
 async function bootApp(){booted=false;
   const loaded=await loadState();
@@ -2065,21 +1690,8 @@ async function bootApp(){booted=false;
   applyDefaults();
   if(!(S.cfg&&S.cfg.onboarded)){booted=true;renderNav();showOnboarding();return}
   booted=true;renderNav();
-  if(persona()==='athlete'&&!['home','plan','workout','progress','profile'].includes(tab))tab='home';
-  restoreClock();renderClock();render();setTimeout(checkReminders,2500)}
-function startLocal(){UID='local';FB.user=null;bootApp()}
-(function(){
-  const hasFb=fbInit();
-  if(!hasFb){startLocal();return}
-  let skip=false;try{skip=localStorage.getItem('ha-skip-auth')==='1'}catch(e){}
-  FB.auth.getRedirectResult().catch(()=>{});
-  FB.auth.onAuthStateChanged(u=>{
-    FB.user=u;
-    if(u){try{localStorage.removeItem('ha-skip-auth')}catch(e){};closeAuthGate();UID=u.uid;bootApp();toast('OPERATOR: '+(u.email||u.uid).toUpperCase())}
-    else if(skip){closeAuthGate();startLocal()}
-    else{booted=false;showAuthGate()}
-  });
-})();
+  render();setTimeout(checkReminders,2500)}
+bootApp();
 </script>
 </body>
 </html>
