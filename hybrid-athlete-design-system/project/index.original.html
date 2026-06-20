@@ -307,101 +307,6 @@ input::placeholder{color:#B9B6AA}
 .ob-sub{color:var(--muted);font-size:14px;margin-bottom:16px}
 .ob-nav{display:flex;gap:10px;margin-top:22px}
 .ob-nav .btn{flex:1}
-
-/* =================================================================
-   V11 — BOLD HERO REDESIGN
-   Per-tab typographic hero (serif + warm clay gradient), calmer
-   decluttered body, collapsible secondary panels, equipment dropdown.
-   ================================================================= */
-
-/* ---- Warmer canvas + sleeker global chrome ---- */
-body{font-size:15px}
-.app{padding:0 16px calc(86px + env(safe-area-inset-bottom))}
-
-/* Topbar shrinks to a quiet utility strip — the hero now carries identity */
-.topbar{align-items:center;padding:calc(12px + env(safe-area-inset-top)) 2px 8px;border-bottom:none}
-.brand-main{font-size:16px;letter-spacing:.02em;opacity:.92}
-.brand-sub{display:none}
-.weight-readout{display:flex;align-items:baseline;gap:6px}
-.weight-big{font-size:20px;color:var(--fg)}
-.weight-delta{margin-top:0;font-size:9px;letter-spacing:.12em}
-
-/* ---- TAB HERO ---- */
-.tab-hero{position:relative;overflow:hidden;margin:6px 0 14px;padding:30px 24px 26px;border-radius:24px;
-  border:1px solid var(--border);box-shadow:var(--shadow-card);isolation:isolate}
-.tab-hero::before{content:"";position:absolute;inset:0;z-index:-1;
-  background:
-    radial-gradient(130% 120% at 100% -10%, rgba(217,119,87,.26), rgba(217,119,87,0) 58%),
-    radial-gradient(120% 130% at -10% 110%, rgba(94,115,85,.12), rgba(94,115,85,0) 55%),
-    linear-gradient(158deg,#FFFFFF 0%,#FAF7F1 52%,#F1EEE5 100%)}
-.tab-hero .th-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.36em;color:var(--primary);text-transform:uppercase;display:flex;align-items:center;gap:8px}
-.tab-hero .th-kicker::before{content:"";width:18px;height:2px;background:var(--primary);border-radius:2px;opacity:.8}
-.tab-hero h1.th-title{font-family:var(--display);font-weight:700;font-size:clamp(38px,12vw,52px);line-height:.92;letter-spacing:-.015em;margin:12px 0 0;color:var(--fg)}
-.tab-hero .th-sub{font-size:13px;line-height:1.45;color:var(--muted);margin:11px 0 0;max-width:36ch;text-wrap:pretty}
-.tab-hero .th-metrics{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
-.tab-hero .th-metric{flex:1;min-width:84px;background:rgba(255,255,255,.6);border:1px solid var(--border);border-radius:14px;padding:10px 12px;backdrop-filter:blur(2px)}
-.tab-hero .th-metric b{display:block;font-family:var(--mono);font-weight:700;font-size:21px;line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}
-.tab-hero .th-metric b.good{color:var(--success)} .tab-hero .th-metric b.warn{color:var(--danger)}
-.tab-hero .th-metric span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:6px}
-@media (max-width:380px){.tab-hero{padding:24px 18px 22px}.tab-hero .th-metric{min-width:72px}}
-
-/* ---- Calmer panels: rely on shadow, soften borders, more air ---- */
-.panel{border-color:rgba(227,224,213,.8);border-radius:18px}
-.panel-pad{padding:16px 18px}
-.view{gap:12px;padding-top:6px}
-.panel-note{font-size:12.5px;line-height:1.45}
-h3.sub{margin:20px 0 2px;letter-spacing:.24em}
-
-/* ---- COLLAPSIBLE PANELS ---- */
-.panel.collapsible>.panel-title.collapse-toggle{cursor:pointer;user-select:none;margin:0;
-  display:flex;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
-.panel.collapsible>.panel-title .cc-chev{margin-left:auto;font-size:13px;color:var(--muted);
-  transition:transform .22s var(--ease,ease),color .15s;transform:rotate(-90deg);line-height:1}
-.panel.collapsible.open>.panel-title .cc-chev{transform:rotate(0);color:var(--primary)}
-.panel.collapsible:not(.open)>.panel-title{color:var(--muted)}
-.panel.collapsible:not(.open)>.panel-title svg{color:var(--muted)}
-.panel.collapsible>.panel-body{margin-top:12px}
-.panel.collapsible:not(.open):hover{border-color:var(--primary)}
-
-/* ---- Orders strips: quieter, pill-soft ---- */
-.orders{border-left-width:3px;border-radius:12px;font-size:10px;padding:9px 13px;line-height:1.4}
-
-/* ---- Next-step banner: bolder hero CTA ---- */
-.nextstep{border-radius:18px;padding:17px 20px;
-  background:linear-gradient(135deg,#E08A6C 0%,#D97757 55%,#CE6A48 100%)}
-.nextstep .ns-act{font-size:19px}
-
-/* ---- Bottom nav: floating, refined ---- */
-.nav{left:50%;right:auto;transform:translateX(-50%);width:min(680px,calc(100% - 24px));bottom:calc(12px + env(safe-area-inset-bottom));
-  border:1px solid var(--border);border-radius:20px;padding:8px 4px;
-  box-shadow:0 8px 28px rgba(38,38,37,.12),0 2px 6px rgba(38,38,37,.06)}
-.nav button{font-size:8px;letter-spacing:.1em;gap:4px}
-.nav button.active{position:relative}
-.nav button.active svg{transform:translateY(-1px)}
-
-/* ---- FAB sits above floating nav ---- */
-.fab{bottom:calc(96px + env(safe-area-inset-bottom))}
-
-/* ---- EQUIPMENT DROPDOWN ---- */
-.eq-dd{position:relative;margin-top:12px}
-.eq-dd-trigger{width:100%;display:flex;align-items:center;gap:10px;background:var(--surface2);
-  border:1px solid var(--border);border-radius:12px;color:var(--fg);font-family:var(--mono);
-  font-size:12px;letter-spacing:.06em;padding:13px 14px;min-height:46px;text-transform:uppercase}
-.eq-dd-trigger .eq-dd-chev{margin-left:auto;color:var(--primary);transition:transform .2s ease}
-.eq-dd-trigger[aria-expanded="true"] .eq-dd-chev{transform:rotate(180deg)}
-.eq-dd-trigger #eqTrigLbl b{color:var(--primary)}
-.eq-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.eq-chips:empty{display:none}
-.eq-chips .eqc{font-family:var(--mono);font-size:9px;letter-spacing:.04em;background:var(--primary-soft);
-  color:var(--primary);border:1px solid rgba(217,119,87,.3);border-radius:99px;padding:5px 10px}
-/* Hidden HUD must actually hide (class display:grid was overriding [hidden]) */
-.hud[hidden]{display:none}
-.eq-dd-menu{margin-top:6px;border:1px solid var(--border);border-radius:14px;background:var(--surface);
-  box-shadow:var(--shadow-card);max-height:280px;overflow-y:auto;padding:6px;
-  display:grid;grid-template-columns:1fr;gap:0}
-.eq-dd-menu .equip-item{padding:11px 10px;border-radius:10px;margin:0}
-.eq-dd-menu .equip-item:active{background:var(--surface2)}
-.eq-dd-menu .equip-item.on{background:var(--primary-soft)}
 </style>
 </head>
 <body>
@@ -1189,80 +1094,7 @@ function render(){
   document.querySelectorAll('.nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-selected',b.dataset.tab===tab)});
   view.innerHTML='';
   ({mission:viewMission,fuel:viewFuel,plan:viewPlan,data:viewData,profile:viewProfileCmd})[tab]();
-  view.insertBefore(buildHero(tab),view.firstChild);
-  decorateView();
   save()}
-
-/* ============ HERO + DECLUTTER (V11) ============ */
-let openState={};
-const HERO_DEF={
-  mission:{kicker:'TODAY · OPERATION',title:'Mission',
-    sub:'One session, logged set by set. Readiness calibrates the loads; the coach calls the audibles.'},
-  fuel:{kicker:'INTAKE CONTROL',title:'Fuel',
-    sub:'Ceiling, protein floor, hydration. Snap the plate — macros land in the diary.'},
-  plan:{kicker:'PERIODIZATION',title:'Plan',
-    sub:'The week and the 4-week block. Build it with the coach, then execute on schedule.'},
-  data:{kicker:'TELEMETRY',title:'Progress',
-    sub:'Weight, tonnage, records, recovery. The trend is the only opinion that counts.'},
-  profile:{kicker:'OPERATOR',title:'Profile',
-    sub:'Objectives, constraints, squad and system. Everything the coach reads about you.'}
-};
-function heroMetrics(tab){
-  const m=meso();
-  if(tab==='mission'){const r=todayReadiness();
-    return [{v:r?r.score+'%':'—',l:'READINESS',c:r?(r.score>=80?'good':r.score<50?'warn':''):''},
-            {v:'W'+m.week,l:m.deload?'DELOAD':'BUILD '+m.pos+'/3'},
-            {v:S.missions.length,l:'MISSIONS'}]}
-  if(tab==='fuel'){const d=dayN(),ml=S.water[today()]||0,rem=cfgK()-d.kcal;
-    return [{v:(rem<0?'+':'')+Math.abs(rem),l:rem<0?'OVER':'KCAL LEFT',c:rem<0?'warn':''},
-            {v:d.protein+'g',l:'PROTEIN',c:d.protein>=cfgP()?'good':''},
-            {v:(ml/1000).toFixed(1)+'L',l:'WATER',c:ml>=WATER_TARGET?'good':''}]}
-  if(tab==='plan'){const a=adherence28();
-    return [{v:a!=null?a+'%':'—',l:'ADHERENCE 28D',c:a!=null&&a>=80?'good':a!=null&&a<60?'warn':''},
-            {v:'W'+m.week,l:m.deload?'DELOAD':'BUILD '+m.pos+'/3'},
-            {v:missionsLast7(),l:'LAST 7 DAYS'}]}
-  if(tab==='data'){const db=debrief(),k=currentKg();
-    return [{v:k!=null?k.toFixed(1):'—',l:'BODYWEIGHT KG'},
-            {v:db.wDelta!=null?(db.wDelta>0?'+':'')+db.wDelta.toFixed(1):'—',l:'7D DELTA',c:db.wDelta!=null&&db.wDelta<0?'good':db.wDelta>0?'warn':''},
-            {v:(db.vol/1000).toFixed(1)+'t',l:'TONNAGE 7D'}]}
-  // profile
-  return [{v:S.missions.length,l:'MISSIONS'},
-          {v:proteinStreak(),l:'PROTEIN STREAK',c:proteinStreak()>0?'good':''},
-          {v:daysSinceStart()+'d',l:'ON PROGRAM'}]}
-function buildHero(tab){
-  const d=HERO_DEF[tab]||HERO_DEF.mission;
-  const mets=heroMetrics(tab).map(m=>'<div class="th-metric"><b class="'+(m.c||'')+'">'+esc(String(m.v))+'</b><span>'+esc(m.l)+'</span></div>').join('');
-  return el('<section class="tab-hero"><div class="th-kicker">'+esc(d.kicker)+'</div>'+
-    '<h1 class="th-title">'+esc(d.title)+'</h1>'+
-    '<p class="th-sub">'+esc(d.sub)+'</p>'+
-    '<div class="th-metrics">'+mets+'</div></section>')}
-
-/* Secondary panels collapse to a tappable header; these stay open by default. */
-const KEEP_OPEN=['READINESS CHECK-IN','DAILY FUEL','WEEKLY PLAN','THIS WEEK','MORNING WEIGH-IN','WEEKLY DEBRIEF'];
-function setPanelOpen(p,open){p.classList.toggle('open',!!open);
-  const b=p.querySelector(':scope > .panel-body');if(b)b.hidden=!open}
-function decorateView(){
-  [...view.children].forEach(p=>{
-    if(!(p.classList&&p.classList.contains('panel')))return;
-    if(p.classList.contains('collapsible'))return;
-    const titleEl=p.querySelector(':scope > .panel-title');
-    if(!titleEl)return; // workout blocks / HIIT / lock stay fully visible
-    const title=titleEl.textContent.trim().toUpperCase();
-    const body=document.createElement('div');body.className='panel-body';
-    let n=titleEl.nextSibling;const move=[];while(n){move.push(n);n=n.nextSibling}
-    move.forEach(x=>body.appendChild(x));
-    p.appendChild(body);
-    p.classList.add('collapsible');
-    titleEl.classList.add('collapse-toggle');
-    titleEl.setAttribute('role','button');titleEl.setAttribute('tabindex','0');
-    titleEl.insertAdjacentHTML('beforeend','<span class="cc-chev" aria-hidden="true">▾</span>');
-    const key=tab+'|'+title;
-    const open=(key in openState)?openState[key]:KEEP_OPEN.some(k=>title.startsWith(k));
-    setPanelOpen(p,open);
-    const toggle=()=>{const no=!p.classList.contains('open');setPanelOpen(p,no);openState[key]=no};
-    titleEl.addEventListener('click',toggle);
-    titleEl.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();toggle()}});
-  })}
 
 /* ---------- MISSION ---------- */
 function viewMission(){
@@ -1576,37 +1408,19 @@ function gymPanel(){
   const nOn=locEquip(p).length;
   const sec=el('<section class="panel panel-pad"><h2 class="panel-title">EQUIPMENT — '+esc(label)+'</h2>'+
     '<p class="panel-note">Tick what’s available here ('+nOn+' selected). The AI builds every set from this kit + your goals.</p>'+
-    '<div class="eq-dd" id="eqDD">'+
-      '<button type="button" class="eq-dd-trigger" id="eqTrigger" aria-expanded="false" aria-haspopup="true"><span id="eqTrigLbl"></span><span class="eq-dd-chev">▾</span></button>'+
-      '<div class="eq-chips" id="eqChips"></div>'+
-      '<div class="eq-dd-menu" id="eqList" role="listbox" hidden></div>'+
-    '</div>'+
+    '<div class="equip-list" id="eqList"></div>'+
     '<div class="row mt"><input id="eqAdd" placeholder="Add equipment…" aria-label="Add equipment"><button class="btn" id="eqAddBtn">ADD</button></div>'+
     '<input type="file" accept="image/*" capture="environment" id="gymFile" hidden>'+
     '<button class="btn primary wide mt" id="scanBtn">'+scanI+'SCAN THIS GYM</button>'+
     '<div id="gymRes"></div></section>');
   const list=sec.querySelector('#eqList');
-  const trigLbl=sec.querySelector('#eqTrigLbl');
-  const chips=sec.querySelector('#eqChips');
-  const trigger=sec.querySelector('#eqTrigger');
-  function refreshEq(){
-    const sel=locEquip(p);
-    trigLbl.innerHTML='<b>'+sel.length+'</b> SELECTED · TAP TO EDIT';
-    chips.innerHTML=sel.slice(0,8).map(x=>'<span class="eqc">'+esc(x)+'</span>').join('')+(sel.length>8?'<span class="eqc">+'+(sel.length-8)+'</span>':'');
-    const note=sec.querySelector('.panel-note');if(note)note.textContent='Select what’s available here ('+sel.length+' selected). The AI builds every set from this kit + your goals.';
-  }
   equipCatalog().forEach(item=>{
     const lab=el('<label class="equip-item"><input type="checkbox"'+(equipChecked(p,item)?' checked':'')+'><span class="cb" aria-hidden="true"></span><span class="eq-name">'+esc(item)+'</span></label>');
-    lab.querySelector('input').addEventListener('change',ev=>{lab.classList.toggle('on',ev.target.checked);toggleEquip(p,item,ev.target.checked);S.briefing=null;save();refreshEq()});
+    lab.querySelector('input').addEventListener('change',ev=>{lab.classList.toggle('on',ev.target.checked);toggleEquip(p,item,ev.target.checked);S.briefing=null;save();
+      const note=sec.querySelector('.panel-note');if(note)note.textContent='Tick what’s available here ('+locEquip(p).length+' selected). The AI builds every set from this kit + your goals.';});
     if(equipChecked(p,item))lab.classList.add('on');
     list.appendChild(lab);
   });
-  refreshEq();
-  trigger.addEventListener('click',()=>{const open=list.hidden;list.hidden=!open;trigger.setAttribute('aria-expanded',String(open))});
-  if(!window._eqDDInit){window._eqDDInit=true;
-    document.addEventListener('click',e=>{const dd=document.querySelector('#eqDD');if(!dd||dd.contains(e.target))return;
-      const m=dd.querySelector('#eqList');if(m&&!m.hidden){m.hidden=true;const t=dd.querySelector('#eqTrigger');if(t)t.setAttribute('aria-expanded','false')}});
-  }
   const addItem=()=>{const v=sec.querySelector('#eqAdd').value;if(!v.trim())return;addCatalogItem(v);toggleEquip(p,v.trim(),true);S.briefing=null;save();render()};
   sec.querySelector('#eqAddBtn').addEventListener('click',addItem);
   sec.querySelector('#eqAdd').addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();addItem()}});

@@ -1,0 +1,46 @@
+/* ============================================================
+   COLORS — HYBRID/ATHLETE
+   Warm-paper base, clay accent, sage + rust signals.
+   A deliberate "tactical, on warm paper" palette: nothing is
+   pure white or pure black; everything sits on FAF9F5 paper.
+   ============================================================ */
+:root {
+  /* ---- Base palette (raw values) ---- */
+  --paper:      #FAF9F5; /* app background — warm off-white */
+  --surface:    #FFFFFF; /* cards, inputs, raised surfaces */
+  --surface-2:  #F0EEE6; /* sunken wells, step buttons, secondary fills */
+  --border:     #E3E0D5; /* hairline borders, dividers */
+  --ink:        #262625; /* primary text — near-black warm */
+  --muted:      #8A8884; /* secondary text, labels, captions */
+
+  --clay:       #D97757; /* primary — terracotta / clay orange */
+  --clay-soft:  rgba(217,119,87,.12); /* primary tint backgrounds */
+  --on-clay:    #FFFFFF; /* text/icons on clay */
+
+  --sage:       #5E7355; /* success / "good" / done */
+  --sage-soft:  rgba(94,115,85,.12);
+  --rust:       #BF4D43; /* danger / "missed" / over-limit */
+  --rust-soft:  rgba(191,77,67,.12);
+
+  /* ---- Semantic aliases (use these in UI) ---- */
+  --bg:               var(--paper);
+  --text-body:        var(--ink);
+  --text-muted:       var(--muted);
+  --text-on-primary:  var(--on-clay);
+
+  --surface-card:     var(--surface);
+  --surface-sunken:   var(--surface-2);
+  --border-color:     var(--border);
+
+  --primary:          var(--clay);
+  --primary-soft:     var(--clay-soft);
+  --on-primary:       var(--on-clay);
+
+  --success:          var(--sage);
+  --success-soft:     var(--sage-soft);
+  --danger:           var(--rust);
+  --danger-soft:      var(--rust-soft);
+
+  /* Focus ring — always clay, inset by default */
+  --focus-ring:       var(--clay);
+}

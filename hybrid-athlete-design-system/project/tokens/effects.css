@@ -1,0 +1,37 @@
+/* ============================================================
+   EFFECTS — radii, shadows, borders, motion
+   The "Claude Design Skin": soft rounding, low-contrast warm
+   shadows, hairline borders, quick press-scale feedback.
+   No chamfers in the shipped skin (the legacy clip-path look
+   was retired). Everything is gently rounded.
+   ============================================================ */
+:root {
+  /* ---- Radii ---- */
+  --radius-xs:   6px;   /* tags, small chips, thumbnails */
+  --radius-sm:   8px;   /* calendar cells */
+  --radius-md:   10px;  /* buttons, inputs, orders strips */
+  --radius-lg:   14px;  /* panels / cards, HUD, segmented control */
+  --radius-xl:   16px;  /* next-step banner, category cards */
+  --radius-pill: 99px;  /* chips, gauge tracks, dots */
+  --radius-full: 50%;   /* FAB, avatars */
+
+  /* ---- Borders ---- */
+  --border-hair:   1px solid var(--border-color);
+  --border-active: 2px solid var(--primary);
+
+  /* ---- Shadows (warm, low-contrast — built on ink @ low alpha) ---- */
+  --shadow-card:  0 1px 2px rgba(38,38,37,.04), 0 4px 16px rgba(38,38,37,.06);
+  --shadow-raise: 0 4px 16px rgba(0,0,0,.18);              /* next-step banner */
+  --shadow-fab:   0 6px 18px rgba(217,119,87,.35);         /* clay glow */
+  --shadow-fab-alert: 0 6px 18px rgba(191,77,67,.45);      /* listening/danger */
+  --shadow-nav:   0 -2px 12px rgba(38,38,37,.05);          /* bottom nav lift */
+
+  /* ---- Motion ---- */
+  --ease-standard: cubic-bezier(.2,.8,.3,1);     /* @kind other */
+  --ease-pop:      cubic-bezier(.2,.8,.3,1.5);   /* @kind other */ /* checkbox tick */
+  --dur-fast:   .12s; /* @kind other */
+  --dur-base:   .15s; /* @kind other */
+  --dur-slow:   .25s; /* @kind other */
+  --press-scale: .96;   /* @kind other */ /* buttons */
+  --press-scale-deep: .88; /* @kind other */ /* steppers, checkboxes */
+}
