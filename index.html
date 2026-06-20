@@ -290,9 +290,14 @@ input::placeholder{color:#B9B6AA}
 .plan-legend span{display:flex;align-items:center;gap:5px}
 .plan-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;border:1px solid var(--border)}
 .equip-list{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin-top:10px}
-.equip-item{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--fg);padding:7px 0;cursor:pointer}
-.equip-item input{width:20px;height:20px;flex:none;accent-color:var(--primary);margin:0}
-.equip-item span{line-height:1.2}
+.equip-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--fg);padding:8px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.equip-item input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.equip-item .cb{width:22px;height:22px;flex:none;border:2px solid var(--border);border-radius:6px;position:relative;background:var(--surface2);transition:background .18s ease,border-color .18s ease,transform .12s ease}
+.equip-item .cb::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transform-origin:center;transition:transform .2s cubic-bezier(.2,.8,.3,1.5)}
+.equip-item input:checked + .cb,.equip-item.on .cb{background:var(--primary);border-color:var(--primary)}
+.equip-item input:checked + .cb::after,.equip-item.on .cb::after{transform:rotate(45deg) scale(1)}
+.equip-item:active .cb{transform:scale(.88)}
+.equip-item .eq-name{line-height:1.25}
 @media (max-width:380px){.equip-list{grid-template-columns:1fr}}
 /* onboarding */
 .ob{position:fixed;inset:0;z-index:280;background:var(--bg);overflow-y:auto;padding:calc(24px + env(safe-area-inset-top)) 18px 24px}
@@ -424,26 +429,27 @@ function fmtClock(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(
 function r25(x){return Math.round(x/2.5)*2.5}
 function dstr(off){const d=new Date();d.setDate(d.getDate()+off);return liso(d)}
 function currentProgram(){
-  const base=S.profile==='scan'&&S.scanProgram?S.scanProgram:(PROGRAMS[S.profile]||PROGRAMS.base);
+  // a deployed AI workout for THIS gym wins; else the scanned program; else the built-in default
+  const ov=(S.gymProgram&&S.gymProgram[S.profile])||(S.profile==='scan'&&S.scanProgram?S.scanProgram:null);
+  const base=ov||PROGRAMS[S.profile]||PROGRAMS.base;
   // apply swaps (clone)
   return {label:base.label,sub:base.sub,blocks:base.blocks.map(b=>({id:b.id,station:b.station,
     exercises:b.exercises.map((ex,i)=>{const k=S.profile+'.'+b.id+'.'+i;
       return S.swaps[k]?Object.assign({},ex,{name:S.swaps[k]}):ex})}))};
 }
+function hasGymOverride(p){return !!(S.gymProgram&&S.gymProgram[p])}
 /* ----- TRAINING LOCATIONS + EQUIPMENT ----- */
 const GYM_DEFAULTS={
   base:{label:'BASE GYM',equip:['Barbell + plates','Squat rack','Flat/incline bench','Cable machine','Dumbbells (full set)','Pull-up bar','Dip station']},
   rooftop:{label:'ROOFTOP',equip:['Dumbbells up to 30 kg','Pull-up bar','Roman chair','Resistance bands','15-20 kg sandbag','Mat']}
 };
-function locLabel(p){return p==='scan'?((S.scanProgram&&S.scanProgram.label)||'SCANNED GYM'):(GYM_DEFAULTS[p]?GYM_DEFAULTS[p].label:'GYM')}
+function locLabel(p){if(p==='scan'){const g=(S.gymProgram&&S.gymProgram.scan)||S.scanProgram;return (g&&g.label)||'AI PLAN'}return GYM_DEFAULTS[p]?GYM_DEFAULTS[p].label:'GYM'}
 function locEquip(p){
+  if(S.gymEquip&&S.gymEquip[p])return S.gymEquip[p];
   if(p==='scan')return (S.scanProgram&&S.scanProgram.equipment)||[];
-  return (S.gymEquip&&S.gymEquip[p])||(GYM_DEFAULTS[p]?GYM_DEFAULTS[p].equip.slice():[]);
+  return GYM_DEFAULTS[p]?GYM_DEFAULTS[p].equip.slice():[];
 }
-function setLocEquip(p,arr){
-  if(p==='scan'){if(S.scanProgram)S.scanProgram.equipment=arr;return}
-  S.gymEquip=S.gymEquip||{};S.gymEquip[p]=arr;
-}
+function setLocEquip(p,arr){S.gymEquip=S.gymEquip||{};S.gymEquip[p]=arr;}
 function activeEquipText(){const e=locEquip(S.profile);return e.length?e.join(', '):'unspecified'}
 function parseEquip(str){return String(str||'').split(/[,\n]/).map(s=>s.trim()).filter(Boolean)}
 // Master list of selectable equipment (checkboxes). Union of defaults, user-added, and whatever each location holds.
@@ -715,8 +721,9 @@ function briefingCard(){
     '<button class="btn wide" id="bfRegen">REGEN</button></div></section>');
   const dep=card.querySelector('#bfDeploy');
   if(dep)dep.addEventListener('click',()=>{
-    S.scanProgram={label:'COACH',sub:"COACH'S BRAIN — "+S.briefing.time+' MIN ADAPTED PROTOCOL',blocks:B.blocks.map(b=>({id:b.id,station:b.station||'',exercises:b.exercises})),equipment:locEquip(S.profile)};
-    S.profile='scan';toast('PROTOCOL DEPLOYED');render()});
+    const prof=S.profile;S.gymProgram=S.gymProgram||{};
+    S.gymProgram[prof]={label:'COACH PROTOCOL',sub:"COACH'S BRAIN — "+S.briefing.time+' MIN · '+locLabel(prof),blocks:B.blocks.map(b=>({id:b.id,station:b.station||'',exercises:b.exercises}))};
+    toast('PROTOCOL DEPLOYED TO '+locLabel(prof));render()});
   const fu=card.querySelector('#bfFuel');
   if(fu)fu.addEventListener('click',()=>{
     const pf=Math.max(B.fueling.protein_g|0,cfgP());
@@ -1127,13 +1134,19 @@ function viewMission(){
   view.appendChild(el('<div class="orders '+(m.deload?'good':'')+'">MESOCYCLE WEEK '+m.week+' — '+(m.deload?'DELOAD WEEK: ALL LOADS −20%, SAME REPS. MANDATORY.':'BUILD '+m.pos+'/3')+'</div>'));
 
   const p=currentProgram();
-  const seg=el('<div class="seg" role="group" aria-label="Environment">'+
+  const scanReady=!!(S.scanProgram||(S.gymProgram&&S.gymProgram.scan));
+  const seg=el('<div class="seg" role="group" aria-label="Where are you training?">'+
     '<button data-p="base" '+(S.profile==='base'?'class="active"':'')+'>BASE GYM</button>'+
     '<button data-p="rooftop" '+(S.profile==='rooftop'?'class="active"':'')+'>ROOFTOP</button>'+
-    '<button data-p="scan" '+(S.profile==='scan'?'class="active"':'')+' '+(S.scanProgram?'':'disabled')+'>AI PLAN</button></div>');
+    '<button data-p="scan" '+(S.profile==='scan'?'class="active"':'')+' '+(scanReady?'':'disabled')+'>AI PLAN</button></div>');
   seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{S.profile=b.dataset.p;render()}));
   view.appendChild(seg);
   view.appendChild(el('<p class="env-sub">'+esc(p.sub||'AI-BUILT FROM GYM SCAN')+'</p>'));
+  if(hasGymOverride(S.profile)){
+    const rs=el('<button class="btn ghost wide" style="margin-bottom:4px">↺ RESET '+esc(locLabel(S.profile))+' TO DEFAULT WORKOUT</button>');
+    rs.addEventListener('click',()=>{delete S.gymProgram[S.profile];toast(locLabel(S.profile)+' RESET TO DEFAULT');render()});
+    view.appendChild(rs);
+  }
   view.appendChild(gymPanel());
   view.appendChild(spontPanel());
   view.appendChild(el('<div class="orders">ORDERS: 3 ROUNDS / BLOCK · ZERO REST INSIDE BLOCK · 60–90 S AFTER EX 3 ONLY · RPE 7–8</div>'));
@@ -1402,9 +1415,10 @@ function gymPanel(){
     '<div id="gymRes"></div></section>');
   const list=sec.querySelector('#eqList');
   equipCatalog().forEach(item=>{
-    const lab=el('<label class="equip-item"><input type="checkbox"'+(equipChecked(p,item)?' checked':'')+'><span>'+esc(item)+'</span></label>');
-    lab.querySelector('input').addEventListener('change',ev=>{toggleEquip(p,item,ev.target.checked);S.briefing=null;save();
+    const lab=el('<label class="equip-item"><input type="checkbox"'+(equipChecked(p,item)?' checked':'')+'><span class="cb" aria-hidden="true"></span><span class="eq-name">'+esc(item)+'</span></label>');
+    lab.querySelector('input').addEventListener('change',ev=>{lab.classList.toggle('on',ev.target.checked);toggleEquip(p,item,ev.target.checked);S.briefing=null;save();
       const note=sec.querySelector('.panel-note');if(note)note.textContent='Tick what’s available here ('+locEquip(p).length+' selected). The AI builds every set from this kit + your goals.';});
+    if(equipChecked(p,item))lab.classList.add('on');
     list.appendChild(lab);
   });
   const addItem=()=>{const v=sec.querySelector('#eqAdd').value;if(!v.trim())return;addCatalogItem(v);toggleEquip(p,v.trim(),true);S.briefing=null;save();render()};
@@ -1498,6 +1512,7 @@ function spontResultCard(box,r){
       exercises:(b.exercises||[]).map((x,xi)=>{const row=edit.querySelector('[data-b="'+bi+'"][data-x="'+xi+'"]');
         return {name:(row&&row.querySelector('.spName').value.trim())||x.name,target:row?row.querySelector('.spTarget').value.trim():x.target,tag:x.tag||'UPPER'}})}));
     S.scanProgram={label:r.title||'SPONTANEOUS',sub:'SPONTANEOUS SESSION'+(eq.length?' — '+eq.slice(0,4).join(', ').toUpperCase():''),blocks,equipment:eq};
+    if(S.gymProgram)delete S.gymProgram.scan; // fresh spontaneous session wins for the AI PLAN slot
     S.profile='scan';S.briefing=null;spont.photos=[];spont._want='';spont.result=null;tab='mission';toast('SESSION LIVE — LOG YOUR SETS');render()});
   box.appendChild(wrap);
 }
@@ -1878,6 +1893,7 @@ function applyDefaults(){
   S.swaps=S.swaps||{};S.feedback=S.feedback||[];S.cfg=S.cfg||{target:81,kcal:2500,protein:180,goals:'Reach target weight, hybrid athleticism, visible core.',injuries:'None reported',exp:'Intermediate'};
   S.weekPlanNote=S.weekPlanNote||'';S.monthPlan=S.monthPlan||null;
   S.gymEquip=S.gymEquip||{};
+  S.gymProgram=S.gymProgram||{};
   S.equipCatalog=S.equipCatalog||[];
   if(!S.gymEquip.base)S.gymEquip.base=GYM_DEFAULTS.base.equip.slice();
   if(!S.gymEquip.rooftop)S.gymEquip.rooftop=GYM_DEFAULTS.rooftop.equip.slice();
