@@ -60,6 +60,34 @@ button{cursor:pointer;font-family:inherit}
 .panel-title svg{color:var(--primary)}
 .panel-note{margin:6px 0 0;font-size:13px;color:var(--muted)}
 
+/* ===== HERO (bold page headers) ===== */
+.hero{position:relative;margin:14px 0 12px;padding:24px 20px;border-radius:22px;color:#fff;overflow:hidden;background:linear-gradient(135deg,var(--primary) 0%,#C2410C 58%,#7C2D12 100%);box-shadow:0 14px 34px -16px rgba(217,119,87,.65)}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(130% 130% at 100% 0%,rgba(255,255,255,.20),transparent 52%);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.hero-kicker{font-family:var(--mono);font-size:10px;letter-spacing:.34em;text-transform:uppercase;opacity:.85}
+.hero-title{font-family:var(--display);font-weight:900;font-size:33px;line-height:1.03;margin:6px 0 0;letter-spacing:-.01em}
+.hero-sub{font-size:13.5px;line-height:1.45;opacity:.93;margin:9px 0 0}
+.hero-stats{display:flex;gap:20px;margin-top:16px;flex-wrap:wrap}
+.hero-stat b{font-family:var(--mono);font-weight:700;font-size:21px;display:block;line-height:1}
+.hero-stat span{font-size:10px;letter-spacing:.1em;opacity:.85;text-transform:uppercase}
+.hero.alt{background:linear-gradient(135deg,#5E7355 0%,#3F5238 60%,#27331F 100%);box-shadow:0 14px 34px -16px rgba(94,115,85,.6)}
+.hero.alt2{background:linear-gradient(135deg,#4F6D8A 0%,#34506B 60%,#1F3243 100%);box-shadow:0 14px 34px -16px rgba(79,109,138,.55)}
+
+/* ===== FOLD (collapsible secondary sections) ===== */
+details.fold{margin-top:10px}
+details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:15px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--fg);font-weight:600;-webkit-tap-highlight-color:transparent}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary .fold-chev{margin-left:auto;transition:transform .22s ease;flex:none;color:var(--muted)}
+details.fold[open]>summary .fold-chev{transform:rotate(180deg)}
+details.fold>summary .fold-tag{font-family:var(--body);font-weight:400;letter-spacing:0;font-size:11px;color:var(--muted)}
+.fold-body{padding:0 16px 16px;animation:foldin .2s ease}
+@keyframes foldin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+/* panels nested inside a fold lose their card chrome so they read as one section */
+.fold-body .panel{border:none;box-shadow:none;background:transparent;border-radius:0}
+.fold-body .panel-pad{padding:10px 0 0}
+.fold-body .panel+.panel{border-top:1px solid var(--border);margin-top:12px}
+.fold-body>.panel:first-child>.panel-title:first-child{display:none}
+
 .seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border);clip-path:var(--chamfer);overflow:hidden}
 .seg button{appearance:none;border:none;background:transparent;color:var(--muted);font-family:var(--display);font-weight:700;font-size:11px;letter-spacing:.1em;padding:13px 4px;min-height:48px;transition:background .15s,color .15s}
 .seg button+button{border-left:1px solid var(--border)}
@@ -314,7 +342,7 @@ input::placeholder{color:#B9B6AA}
   <header class="topbar">
     <div>
       <span class="brand-main">HYBRID<b>/</b>ATHLETE</span>
-      <span class="brand-sub">FLOW &amp; POWER · V10</span>
+      <span class="brand-sub">FLOW &amp; POWER · V11</span>
     </div>
     <div class="weight-readout" aria-live="polite">
       <span class="weight-big num" id="hdrKg">--.-</span><span class="weight-unit">KG</span>
@@ -425,6 +453,22 @@ function save(){if(!booted)return;clearTimeout(saveT);
 const $=s=>document.querySelector(s);
 function el(h){const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstChild}
 function esc(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+// Bold page hero. variant: '' | 'alt' | 'alt2'. stats: array of [value,label]. extra: optional node appended.
+function hero(kicker,title,sub,variant,stats){
+  const h=el('<header class="hero'+(variant?' '+variant:'')+'"><div class="hero-kicker">'+esc(kicker)+'</div>'+
+    '<h1 class="hero-title">'+esc(title)+'</h1>'+(sub?'<p class="hero-sub">'+esc(sub)+'</p>':'')+
+    (stats&&stats.length?'<div class="hero-stats">'+stats.map(s=>'<div class="hero-stat"><b>'+esc(s[0])+'</b><span>'+esc(s[1])+'</span></div>').join('')+'</div>':'')+'</header>');
+  return h;
+}
+const CHEV='<svg class="fold-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+// Collapsible secondary section. content can be a node or a ()=>node. tag = small right-aligned hint.
+function fold(title,content,open,tag){
+  const d=el('<details class="fold panel"'+(open?' open':'')+'><summary>'+esc(title)+(tag?' <span class="fold-tag">'+esc(tag)+'</span>':'')+CHEV+'</summary><div class="fold-body"></div></details>');
+  const body=d.querySelector('.fold-body');
+  const node=typeof content==='function'?content():content;
+  if(node)body.appendChild(node);
+  return d;
+}
 function fmtClock(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 function r25(x){return Math.round(x/2.5)*2.5}
 function dstr(off){const d=new Date();d.setDate(d.getDate()+off);return liso(d)}
@@ -628,33 +672,17 @@ function handleVoice(raw){const t=raw.toLowerCase().replace(/,/g,' ');
   toast('LOGGED: '+hit.ex.name.toUpperCase()+' — '+nums[0]+' KG × '+nums[1]+(nums[2]?' @ RPE '+nums[2]:''));
   if(tab==='mission')render()}
 
-/* ============ CLAUDE VISION API ============ */
+/* ============ AI (global key via Vercel serverless proxy) ============ */
 function parseAI(text){const t=String(text).replace(/```json|```/g,'').trim();
   try{return JSON.parse(t)}catch(e){const m=t.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw e}}
-function aiProvider(){const k=(S.apiKey||'').trim();
-  if(!k)return 'anthropic-keyless';
-  return k.startsWith('sk-ant-')?'anthropic':'gemini'}
+// Every user shares the deployment's GEMINI_API_KEY — the browser never sees it; requests go through /api/ai.
 async function claudeMM(content){
-  return aiProvider()==='gemini'?geminiCall(content):anthropicCall(content)}
-// any key not prefixed sk-ant- is treated as a Google key and sent only to Google's endpoint
-async function anthropicCall(content){
-  const body=JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content}]});
-  const headers={'Content-Type':'application/json'};
-  if(S.apiKey){headers['x-api-key']=S.apiKey.trim();headers['anthropic-version']='2023-06-01';headers['anthropic-dangerous-direct-browser-access']='true'}
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers,body});
-  if(!res.ok){const e=new Error('API '+res.status);e.status=res.status;throw e}
-  const data=await res.json();
-  const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-  return parseAI(text)}
-async function geminiCall(content){
-  const parts=content.map(b=>b.type==='image'
-    ?{inline_data:{mime_type:b.source.media_type,data:b.source.data}}
-    :{text:b.text});
+  const parts=content.map(b=>b.type==='image'?{inline_data:{mime_type:b.source.media_type,data:b.source.data}}:{text:b.text});
   const body=JSON.stringify({contents:[{role:'user',parts}],
     generationConfig:{maxOutputTokens:4096,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}});
-  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-    {method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':S.apiKey.trim()},body});
-  if(!res.ok){const e=new Error('API '+res.status);e.status=res.status;throw e}
+  const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body});
+  if(!res.ok){let detail='';try{detail=((await res.json())||{}).error||''}catch(e){}
+    const err=new Error('API '+res.status+(detail?' '+detail:''));err.status=res.status;throw err}
   const data=await res.json();
   const text=((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(p=>p.text||'').join('');
   if(!text){const e=new Error('EMPTY');e.status=422;throw e}
@@ -930,8 +958,7 @@ function applyWeekAI(week){
   for(const k in PLAN_DOWMAP){let v=String(week[k]||'rest').toLowerCase();if(!valid.includes(v))v='rest';S.weekPlan[PLAN_DOWMAP[k]]=v}
   syncPlannedWk();
 }
-function planKeyMissing(box){if((S.apiKey||'').trim())return false;
-  box.innerHTML='<div class="vision-result"><div class="vr-flag">ADD AN AI KEY IN PROFILE FIRST — free Gemini key (AIza...) from aistudio.google.com, or Anthropic key (sk-ant-...).</div></div>';return true}
+function planKeyMissing(){return false} // global key handled server-side; failures surface via uplinkMsg
 async function requestWeekPlan(box){
   if(planKeyMissing(box))return;
   box.innerHTML='<div class="vision-result"><span class="spin"></span>COACH BUILDING YOUR WEEK...</div>';
@@ -953,6 +980,9 @@ async function requestMonthPlan(box){
 /* ----- PLAN: weekly schedule + monthly overview ----- */
 function viewPlan(){
   seedWeekPlan();
+  const adh=adherence28();
+  view.appendChild(hero('TRAINING PLAN','YOUR WEEK','AI-built schedule + month overview. Tune any day by hand.','alt2',
+    [[String((S.cfg&&S.cfg.days)||4),'Days/wk'],[(adh!=null?adh+'%':'—'),'Adherence 28d'],[String(S.missions.length),'Sessions']]));
   const _ns=nextStepBanner();if(_ns)view.appendChild(_ns);
   const dayLbl=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const dowFor=i=>(i+1)%7; // Mon=0 -> getDay 1 ... Sun=6 -> getDay 0
@@ -1098,6 +1128,10 @@ function render(){
 
 /* ---------- MISSION ---------- */
 function viewMission(){
+  const done0=missionCompleteToday();
+  view.appendChild(hero('MISSION CONTROL',done0?'MISSION COMPLETE':'TODAY’S MISSION',
+    done0?'Logged and closed. Recover hard.':'Readiness → briefing → train. One block at a time.','',
+    [[String(S.missions.length).padStart(3,'0'),'Total'],[missionsLast7()+'/'+((S.cfg&&S.cfg.days)||4),'This wk'],[String(streakDays()),'Streak']]));
   const _ns=nextStepBanner();if(_ns)view.appendChild(_ns);
   const m=meso();
   // readiness check-in
@@ -1267,12 +1301,10 @@ function viewMission(){
   if(SR){const fab=el('<button class="fab" id="voiceFab" aria-label="Voice log a set"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>');
     fab.addEventListener('click',startVoice);view.appendChild(fab)}
   view.appendChild(el('<p class="footrule">Missions logged: '+S.missions.length+'. Sharp, joint-based, or new pain: stop the block and log it — that\'s a report, not an excuse.</p>'));
-  // in-session AI tools (relocated from VISION — used DURING training)
-  view.appendChild(el('<h3 class="sub">IN-SESSION TOOLS</h3>'));
-  view.appendChild(buildFormCheck());
-  // HIIT bonus block entry (relocated from its own tab — post-lift option)
-  view.appendChild(el('<h3 class="sub">BONUS BLOCK</h3>'));
-  viewHiitInto(view);
+  // secondary tools — collapsed by default to keep the page clean
+  view.appendChild(fold('FORM CHECK — BAR PATH',buildFormCheck(),false));
+  const hiitBox=el('<div></div>');viewHiitInto(hiitBox);
+  view.appendChild(fold('BONUS BLOCK + ENDURANCE TOOLS',hiitBox,false));
 }
 
 /* ---------- FUEL ---------- */
@@ -1284,7 +1316,10 @@ function gauge(label,val,limit,unit,danger,good,note){
   '<div class="gauge-fill '+(danger?'danger':'')+' '+(good?'good':'')+'" style="width:'+pct+'%"></div></div>'+
   '<div class="gauge-note '+(danger?'t-danger':'')+' '+(good?'t-good':'')+'">'+note+'</div></div>'}
 function viewFuel(){
-  view.appendChild(buildSnapMeal());
+  const dN=dayN();
+  view.appendChild(hero('NUTRITION','FUEL','Hit the protein floor, respect the ceiling, stay hydrated.','alt',
+    [[String(dN.kcal||0),'Kcal'],[(dN.protein||0)+'g','Protein'],[((S.water[today()]||0)/1000).toFixed(1)+'L','Water']]));
+  view.appendChild(fold('SNAP A MEAL — AI MACROS',buildSnapMeal(),false));
   const d=dayN(),ml=S.water[today()]||0;
   const af=(S.aiFuel&&S.aiFuel.date===today())?S.aiFuel:null;
   const refeed=isRefeedDay();const cap=af?af.kcal:(refeed?(cfgK()+700):cfgK());
@@ -1319,7 +1354,7 @@ function viewFuel(){
     :'<p class="empty">Save any logged meal as a template (★ in the meal list) for one-tap relogging.</p>')+'</section>');
   tp.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{const t=S.templates[Number(b.dataset.i)];
     addMeal(t.name,t.kcal,t.protein,t.carbs,t.fat);toast('LOGGED: '+t.name.toUpperCase());render()}));
-  view.appendChild(tp);
+  view.appendChild(fold('QUICK-LOG TEMPLATES',tp,false,S.templates.length?String(S.templates.length):''));
 
   // barcode
   const bc=el('<section class="panel panel-pad"><h2 class="panel-title">BARCODE SCAN</h2>'+
@@ -1328,7 +1363,7 @@ function viewFuel(){
     '<button class="btn primary wide mt">SCAN BARCODE</button><div id="bcRes"></div></section>');
   bc.querySelector('.btn').addEventListener('click',()=>bc.querySelector('#bcFile').click());
   bc.querySelector('#bcFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)scanBarcode(f,bc.querySelector('#bcRes'));e.target.value=''});
-  view.appendChild(bc);
+  view.appendChild(fold('BARCODE SCAN',bc,false));
 
   // meals today
   const meals=el('<section class="panel panel-pad"><h2 class="panel-title">MEALS TODAY</h2>'+
@@ -1360,12 +1395,11 @@ function viewFuel(){
     const txt=g.items.map(x=>x[0]+' — '+x[1]).join('\n');
     if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast('LIST COPIED')).catch(()=>toast('COPY BLOCKED — SCREENSHOT IT'));
     else toast('COPY UNSUPPORTED — SCREENSHOT IT')});
-  view.appendChild(gp);
+  view.appendChild(fold('WEEKLY RESUPPLY LIST',gp,false));
 
-  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">STANDING ORDERS</h2>'+
-    '<ul style="margin:8px 0 0;padding-left:18px;font-size:14px"><li>2,500 kcal hard ceiling · 180 g protein floor.</li>'+
+  view.appendChild(fold('STANDING ORDERS',el('<div><ul style="margin:8px 0 0;padding-left:18px;font-size:14px"><li>2,500 kcal hard ceiling · 180 g protein floor.</li>'+
     '<li>Banned: '+esc(BANNED)+'.</li><li>3 L water minimum on compound days.</li>'+
-    '<li>Refeed to maintenance every 14 days — scheduled, not earned by cravings.</li></ul></section>'));
+    '<li>Refeed to maintenance every 14 days — scheduled, not earned by cravings.</li></ul></div>'),false));
 }
 
 /* ---------- VISION ---------- */
@@ -1406,18 +1440,18 @@ function gymPanel(){
   const p=S.profile;const label=locLabel(p);
   const scanI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>';
   const nOn=locEquip(p).length;
-  const sec=el('<section class="panel panel-pad"><h2 class="panel-title">EQUIPMENT — '+esc(label)+'</h2>'+
-    '<p class="panel-note">Tick what’s available here ('+nOn+' selected). The AI builds every set from this kit + your goals.</p>'+
+  const sec=el('<div>'+
+    '<p class="panel-note">Tick what’s available here. The AI builds every set from this kit + your goals.</p>'+
     '<div class="equip-list" id="eqList"></div>'+
     '<div class="row mt"><input id="eqAdd" placeholder="Add equipment…" aria-label="Add equipment"><button class="btn" id="eqAddBtn">ADD</button></div>'+
     '<input type="file" accept="image/*" capture="environment" id="gymFile" hidden>'+
     '<button class="btn primary wide mt" id="scanBtn">'+scanI+'SCAN THIS GYM</button>'+
-    '<div id="gymRes"></div></section>');
+    '<div id="gymRes"></div></div>');
   const list=sec.querySelector('#eqList');
+  const syncTag=()=>{const d=sec.closest('details');if(d){const t=d.querySelector('.fold-tag');if(t)t.textContent=locEquip(p).length+' SELECTED'}};
   equipCatalog().forEach(item=>{
     const lab=el('<label class="equip-item"><input type="checkbox"'+(equipChecked(p,item)?' checked':'')+'><span class="cb" aria-hidden="true"></span><span class="eq-name">'+esc(item)+'</span></label>');
-    lab.querySelector('input').addEventListener('change',ev=>{lab.classList.toggle('on',ev.target.checked);toggleEquip(p,item,ev.target.checked);S.briefing=null;save();
-      const note=sec.querySelector('.panel-note');if(note)note.textContent='Tick what’s available here ('+locEquip(p).length+' selected). The AI builds every set from this kit + your goals.';});
+    lab.querySelector('input').addEventListener('change',ev=>{lab.classList.toggle('on',ev.target.checked);toggleEquip(p,item,ev.target.checked);S.briefing=null;save();syncTag()});
     if(equipChecked(p,item))lab.classList.add('on');
     list.appendChild(lab);
   });
@@ -1446,19 +1480,19 @@ function gymPanel(){
       box.appendChild(det);
     }catch(err){visionErr(box,err)}
     e.target.value=''});
-  return sec;
+  return fold('EQUIPMENT — '+label,sec,false,nOn+' SELECTED');
 }
 /* ----- SPONTANEOUS WORKOUT: multi-photo, real-time, goal/intent driven ----- */
 let spont={photos:[],_want:''};
 function spontPanel(){
-  const sec=el('<section class="panel panel-pad"><h2 class="panel-title">⚡ SPONTANEOUS WORKOUT</h2>'+
+  const sec=el('<div>'+
     '<p class="panel-note">New spot? Snap a few photos, say what you want, and the coach builds a session in real time from what it sees + your goals.</p>'+
     '<input type="file" accept="image/*" capture="environment" id="spFile" hidden multiple>'+
     '<div id="spThumbs" class="photo-grid" style="margin-top:8px"></div>'+
     '<button class="btn wide mt" id="spAdd">+ ADD GYM PHOTO ('+spont.photos.length+')</button>'+
     '<label class="f mt"><span>WHAT DO YOU WANT? (OPTIONAL)</span><input id="spWant" placeholder="e.g. upper body + core, 30 min, feeling strong"></label>'+
     '<button class="btn primary wide mt" id="spGo"'+(spont.photos.length?'':' disabled')+'>BUILD WORKOUT</button>'+
-    '<div id="spRes"></div></section>');
+    '<div id="spRes"></div></div>');
   const thumbs=sec.querySelector('#spThumbs');
   spont.photos.forEach((b,i)=>{const im=el('<img src="data:image/jpeg;base64,'+b+'" alt="Gym photo" title="Tap to remove" style="cursor:pointer">');im.addEventListener('click',()=>{spont.photos.splice(i,1);render()});thumbs.appendChild(im)});
   sec.querySelector('#spAdd').addEventListener('click',()=>sec.querySelector('#spFile').click());
@@ -1470,7 +1504,7 @@ function spontPanel(){
   const want=sec.querySelector('#spWant');want.value=spont._want||'';
   want.addEventListener('input',()=>{spont._want=want.value});
   sec.querySelector('#spGo').addEventListener('click',()=>buildSpontaneous(sec.querySelector('#spRes'),want.value));
-  return sec;
+  return fold('⚡ SPONTANEOUS WORKOUT',sec,spont.photos.length>0,spont.photos.length?spont.photos.length+' PHOTOS':'');
 }
 async function buildSpontaneous(box,want){
   if(!spont.photos.length){box.innerHTML='<div class="vision-result"><div class="vr-flag">ADD AT LEAST ONE GYM PHOTO.</div></div>';return}
@@ -1543,31 +1577,32 @@ function buildFormCheck(){
   return fc;
 }
 function buildUplinkPanel(){
-  const keyPnl=el('<section class="panel panel-pad"><h2 class="panel-title">VISION UPLINK</h2>'+
-    '<p class="api-note">Inside Claude, vision runs keyless. On a deployed build, paste a key — FREE option: aistudio.google.com → Get API key (Gemini, starts AIza, no card needed). Or an Anthropic key (sk-ant-...). Auto-detected by prefix; sent only to the matching provider, stored on this device only. Treat any browser-held key as exposable.</p>'+
-    '<div class="row mt"><label class="f"><span>AI API KEY — GEMINI (FREE) OR ANTHROPIC</span><input id="keyIn" type="password" placeholder="AIza... or sk-ant-..." value="'+esc(S.apiKey||'')+'"></label>'+
-    '<button class="btn" id="keySave">SAVE</button></div>'+'<button class="btn wide mt" id="keyTest">TEST UPLINK</button></section>');
-  keyPnl.querySelector('#keySave').addEventListener('click',()=>{S.apiKey=keyPnl.querySelector('#keyIn').value.trim();save();beep(520,.15);toast('KEY SAVED ON-DEVICE')});
+  const keyPnl=el('<section class="panel panel-pad"><h2 class="panel-title">AI COACH</h2>'+
+    '<p class="api-note">The AI coach runs on a shared key configured on the server (Vercel env <b>GEMINI_API_KEY</b>) — nothing to set up per person. Test the connection below.</p>'+
+    '<button class="btn wide mt" id="keyTest">TEST AI CONNECTION</button></section>');
   keyPnl.querySelector('#keyTest').addEventListener('click',async e=>{
     e.target.textContent='PINGING...';e.target.disabled=true;
     try{const r=await claudeText('Respond ONLY with raw JSON: {"ok":true}');
-      toast(r&&r.ok?'UPLINK CONFIRMED — VISION SYSTEMS ARMED':'UPLINK RESPONDED — UNEXPECTED PAYLOAD')}
+      toast(r&&r.ok?'AI ONLINE — COACH READY':'AI RESPONDED — UNEXPECTED PAYLOAD')}
     catch(err){toast(uplinkMsg(err))}
-    e.target.textContent='TEST UPLINK';e.target.disabled=false});
+    e.target.textContent='TEST AI CONNECTION';e.target.disabled=false});
   return keyPnl;
 }
 function uplinkMsg(err){
-  if(err&&(err.status===400||err.status===401||err.status===403))return 'KEY REJECTED (HTTP '+err.status+'). Check the key in PROFILE → AI API KEY: Gemini keys start AIza..., Anthropic keys sk-ant-... Save and retry.';
+  if(err&&(err.status===400||err.status===401||err.status===403))return 'AI KEY REJECTED (HTTP '+err.status+'). The deployment GEMINI_API_KEY may be invalid — check Vercel env vars.';
   if(err&&err.status===404)return 'MODEL UNAVAILABLE (404). Report this to the coach for a model-string update.';
   if(err&&err.status===429)return 'RATE LIMITED (429). Free-tier Gemini caps requests per minute — stand down 60 seconds and retry.';
   if(err&&err.status>=500)return 'AI API OVERLOADED ('+err.status+'). Not your fault — retry shortly.';
   if(err instanceof SyntaxError)return 'RESPONSE PARSE ERROR. Retry — the model returned malformed data.';
-  return 'NO UPLINK ROUTE. An API key is required: free Gemini key from aistudio.google.com (AIza...) or Anthropic key (sk-ant-...) → PROFILE → AI API KEY → SAVE. Also check signal.';
+  return 'AI UNREACHABLE. The /api/ai route or GEMINI_API_KEY may not be deployed yet. Check signal and the Vercel deployment.';
 }
 function visionErr(box,err){box.innerHTML='<div class="vision-result"><div class="vr-flag">'+uplinkMsg(err)+'</div></div>'}
 
-/* ---------- DATA ---------- */
+/* ---------- DATA / PROGRESS ---------- */
 function viewData(){
+  const kg=currentKg();const dl=kg!=null?kg-cfgT():null;
+  view.appendChild(hero('PROGRESS','THE RECEIPTS','Weight, recovery, records and history — proof the work is landing.','alt2',
+    [[(kg!=null?kg.toFixed(1):'—'),'Kg now'],[(dl!=null?(dl>0?'+':'')+dl.toFixed(1):'—'),'To target'],[String(S.missions.length),'Missions']]));
   // weigh-in
   const w=el('<section class="panel panel-pad"><h2 class="panel-title">MORNING WEIGH-IN</h2>'+
     '<p class="panel-note">Post-void, pre-food. One number per day.</p>'+
@@ -1599,12 +1634,12 @@ function viewData(){
     (adherence28()==null?'<p class="gauge-note mt">SET YOUR WEEKLY SCHEDULE IN THE PLAN TAB TO TRACK ADHERENCE.</p>':'')+'</section>'));
 
   // weight chart
-  if(S.weights.length>=2)view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">WEIGHT TREND → '+cfgT().toFixed(1)+'</h2>'+weightChart()+'</section>'));
+  if(S.weights.length>=2)view.appendChild(fold('WEIGHT TREND → '+cfgT().toFixed(1),el('<section class="panel panel-pad"><h2 class="panel-title">WEIGHT TREND</h2>'+weightChart()+'</section>'),true));
 
   // recovery dashboard
   const rdays=Object.entries(S.readiness).sort((a,b)=>a[0]<b[0]?-1:1).slice(-14);
-  if(rdays.length)view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">RECOVERY DASHBOARD</h2>'+readyChart(rdays)+
-    '<ul class="setlist">'+rdays.slice(-5).reverse().map(([d,r])=>'<li><span class="sl-b">'+d+'</span><span class="num">'+r.score+'% · '+r.sleep+'H'+(r.rhr?' · RHR '+r.rhr:'')+'</span></li>').join('')+'</ul></section>'));
+  if(rdays.length)view.appendChild(fold('RECOVERY DASHBOARD',el('<section class="panel panel-pad"><h2 class="panel-title">RECOVERY DASHBOARD</h2>'+readyChart(rdays)+
+    '<ul class="setlist">'+rdays.slice(-5).reverse().map(([d,r])=>'<li><span class="sl-b">'+d+'</span><span class="num">'+r.score+'% · '+r.sleep+'H'+(r.rhr?' · RHR '+r.rhr:'')+'</span></li>').join('')+'</ul></section>'),false));
 
   // measurements
   const lastM=S.measures.length?S.measures[S.measures.length-1]:null;
@@ -1620,7 +1655,7 @@ function viewData(){
     S.measures=S.measures.filter(m=>m.date!==today());
     S.measures.push({date:today(),waist:wv,chest:Number(mp.querySelector('#mC').value)||null,arm:Number(mp.querySelector('#mA').value)||null});
     render()});
-  view.appendChild(mp);
+  view.appendChild(fold('BODY MEASUREMENTS',mp,false));
 
   // photo vault
   const pv=el('<section class="panel panel-pad"><h2 class="panel-title">PROGRESS PHOTO VAULT</h2>'+
@@ -1638,19 +1673,19 @@ function viewData(){
       if(S.photos.length>12)S.photos=[S.photos[0],...S.photos.slice(-11)];
       toast('PHOTO FILED');render()}catch(err){toast('PHOTO FAILED')}
     e.target.value=''});
-  view.appendChild(pv);
+  view.appendChild(fold('PROGRESS PHOTO VAULT',pv,false,S.photos.length?String(S.photos.length):''));
 
   // volume heatmap
-  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">VOLUME HEATMAP — SETS BY PATTERN</h2>'+heatmap()+'<p class="gauge-note mt">ORANGE = THIS WEEK · GREY = LAST WEEK. PUSH/PULL/HINGE BALANCE LIVES HERE.</p></section>'));
+  view.appendChild(fold('VOLUME HEATMAP — SETS BY PATTERN',el('<section class="panel panel-pad"><h2 class="panel-title">VOLUME HEATMAP</h2>'+heatmap()+'<p class="gauge-note mt">ORANGE = THIS WEEK · GREY = LAST WEEK. PUSH/PULL/HINGE BALANCE LIVES HERE.</p></section>'),false));
 
   // PR board
   const prs={};
   for(const s of S.sets){if(!s.kg)continue;
     if(!prs[s.exercise]||s.kg>prs[s.exercise].kg)prs[s.exercise]={kg:s.kg,reps:s.reps,date:s.date}}
   const prN=Object.keys(prs).sort((a,b)=>prs[b].kg-prs[a].kg);
-  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">RECORD BOARD</h2>'+
+  view.appendChild(fold('RECORD BOARD',el('<section class="panel panel-pad"><h2 class="panel-title">RECORD BOARD</h2>'+
     (prN.length?'<ul class="setlist">'+prN.slice(0,8).map(n=>'<li><span class="sl-b">'+esc(n)+'</span><span class="num" style="color:var(--primary)">'+prs[n].kg+' KG × '+prs[n].reps+'</span><span class="num">'+prs[n].date+'</span></li>').join('')+'</ul>'
-    :'<p class="empty">No records yet. Records are taken, not given.</p>')+'</section>'));
+    :'<p class="empty">No records yet. Records are taken, not given.</p>')+'</section>'),false));
 
   // 1RM board
   const rms=e1rmHistory();
@@ -1666,32 +1701,34 @@ function viewData(){
     const hist=S.sets.filter(s=>s.exercise===exn&&s.kg).slice(-10).reverse();
     det.innerHTML='<ul class="setlist">'+hist.map(s=>'<li><span class="sl-b">'+s.date+'</span><span class="num">'+s.kg+' kg × '+s.reps+(s.rpe?' @ '+s.rpe:'')+(s.spd?' · '+s.spd:'')+' · e1RM '+(epley(s.kg,s.reps)||'—')+'</span></li>').join('')+'</ul>';
     det.hidden=false}));
-  view.appendChild(rmSec);
+  view.appendChild(fold('ESTIMATED 1RM BOARD',rmSec,false));
 
   // mission history
   const mlog=S.missionLog.slice().reverse();
-  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">MISSION HISTORY</h2>'+
+  view.appendChild(fold('MISSION HISTORY',el('<section class="panel panel-pad"><h2 class="panel-title">MISSION HISTORY</h2>'+
     (mlog.length?'<ul class="setlist">'+mlog.slice(0,15).map((m,i)=>'<li><span class="sl-a num">'+String(mlog.length-i).padStart(3,'0')+'</span><span class="sl-b">'+esc(m.date)+' · '+esc(m.label)+(m.note?' · “'+esc(m.note)+'”':'')+'</span><span class="num">'+m.sets+' sets · '+(m.volume/1000).toFixed(1)+' t · '+fmtClock(m.timeUsed||0)+(m.rest?' · rest ~'+m.rest+'s':'')+'</span></li>').join('')+'</ul>'
-    :'<p class="empty">No closed missions. History is written by finishers.</p>')+'</section>'));
+    :'<p class="empty">No closed missions. History is written by finishers.</p>')+'</section>'),false,mlog.length?String(mlog.length):''));
 
   // fuel history
-  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">FUEL HISTORY — 7 DAYS</h2>'+fuelChart()+
+  view.appendChild(fold('FUEL HISTORY — 7 DAYS',el('<section class="panel panel-pad"><h2 class="panel-title">FUEL HISTORY</h2>'+fuelChart()+
     '<ul class="setlist">'+[...Array(7)].map((_,i)=>{const d2=dstr(-i);const r=S.nutrition[d2];if(!r)return '';
       const kOk=r.kcal<=cfgK(),pOk=r.protein>=cfgP();
-      return '<li><span class="sl-b">'+d2+'</span><span class="num '+(kOk?'t-good':'t-danger')+'">'+r.kcal+' kcal</span><span class="num '+(pOk?'t-good':'t-danger')+'">'+r.protein+' g P</span></li>'}).join('')+'</ul></section>'));
+      return '<li><span class="sl-b">'+d2+'</span><span class="num '+(kOk?'t-good':'t-danger')+'">'+r.kcal+' kcal</span><span class="num '+(pOk?'t-good':'t-danger')+'">'+r.protein+' g P</span></li>'}).join('')+'</ul></section>'),false));
 
   // recent sets
   const recent=S.sets.slice(-20).reverse();
-  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">RECENT SETS</h2>'+
+  view.appendChild(fold('RECENT SETS',el('<section class="panel panel-pad"><h2 class="panel-title">RECENT SETS</h2>'+
     (recent.length?'<ul class="setlist">'+recent.map(s=>'<li><span class="sl-a">'+esc(s.blockId)+'</span><span class="sl-b">'+esc(s.exercise)+'</span><span class="num">'+(s.kg?s.kg+' kg × ':'')+s.reps+(s.rpe?' @ '+s.rpe:'')+(s.spd?' · '+s.spd:'')+'</span></li>').join('')+'</ul>'
-    :'<p class="empty">No sets on record. Open MISSION and put numbers on the board.</p>')+'</section>'));
+    :'<p class="empty">No sets on record. Open MISSION and put numbers on the board.</p>')+'</section>'),false));
 }
 
 function viewProfileCmd(){
-  view.appendChild(el('<h3 class="sub">OPERATOR PROFILE &amp; SYSTEM</h3>'));
+  view.appendChild(hero('OPERATOR','PROFILE','Your objectives, AI coach, and data — all on this device.','',
+    [[cfgT().toFixed(0),'Target kg'],[String((S.cfg&&S.cfg.exp||'—').split(',')[0]),'Level'],[String(daysSinceStart()),'Days in']]));
   const swap=el('<section class="panel panel-pad"><h2 class="panel-title">SETUP</h2><p class="panel-note">Local, single-operator build. All data lives on this device — back it up below.</p><button class="btn wide mt" id="reOnb">REDO ONBOARDING</button></section>');
   swap.querySelector('#reOnb').addEventListener('click',()=>showOnboarding());
   view.appendChild(swap);
+  view.appendChild(buildUplinkPanel());
   // squad
   const sq=el('<section class="panel panel-pad"><h2 class="panel-title">SQUAD BOARD</h2>'+
     '<p class="panel-note">Import a teammate\'s exported backup to put them on the board. Local comparison — no server, no excuses about privacy.</p>'+
@@ -1713,7 +1750,7 @@ function viewProfileCmd(){
       S.squadBoard.push({name,kg:tkg,missions:m7,ton:(ton/1000).toFixed(1)});
       toast(name+' ON THE BOARD');render()}catch(err){toast('IMPORT FAILED — CORRUPT FILE')}};
     rd.readAsText(f);e.target.value=''});
-  view.appendChild(sq);
+  view.appendChild(fold('SQUAD BOARD',sq,false,S.squadBoard.length?String(S.squadBoard.length):''));
 
   // reminders
   const perm=typeof Notification!=='undefined'?Notification.permission:'unsupported';
@@ -1726,11 +1763,11 @@ function viewProfileCmd(){
     try{const p2=await Notification.requestPermission();
       if(p2==='granted'){rb.textContent='REMINDERS ARMED';rb.disabled=true;toast('REMINDERS ARMED');checkReminders()}
       else toast('PERMISSION DENIED BY DEVICE')}catch(e){toast('PERMISSION DENIED BY DEVICE')}});
-  view.appendChild(rp);
+  view.appendChild(fold('REMINDERS',rp,false));
 
   // objectives + data command
   const dc=el('<section class="panel panel-pad"><h2 class="panel-title">SYSTEM</h2>'+
-    '<p class="api-note">BUILD V10 · LOCAL-ONLY · SINGLE OPERATOR</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
+    '<p class="api-note">BUILD V11 · SHARED AI KEY (VERCEL) · LOCAL DATA</p>'+'<h3 class="sub">OBJECTIVES & CONSTRAINTS (FEEDS THE COACH)</h3>'+'<div class="row"><label class="f"><span>TARGET KG</span><input id="cT" inputmode="decimal" value="'+S.cfg.target+'"></label>'+'<label class="f"><span>KCAL CEILING</span><input id="cK" inputmode="numeric" value="'+S.cfg.kcal+'"></label>'+'<label class="f"><span>PROTEIN FLOOR</span><input id="cP" inputmode="numeric" value="'+S.cfg.protein+'"></label></div>'+'<div class="row mt"><label class="f"><span>GOALS</span><input id="cG" value="'+esc(S.cfg.goals)+'"></label></div>'+'<div class="row mt"><label class="f"><span>INJURIES / LIMITS</span><input id="cI" value="'+esc(S.cfg.injuries)+'"></label>'+'<label class="f"><span>EXPERIENCE</span><input id="cE" value="'+esc(S.cfg.exp)+'"></label></div>'+'<button class="btn wide mt" id="cfgSave">SAVE OBJECTIVES</button>'+'<h3 class="sub">DATA COMMAND</h3>'+
     '<div class="row"><button class="btn wide" id="expBtn">EXPORT JSON</button><button class="btn wide" id="impBtn">IMPORT</button><input type="file" accept="application/json" id="impFile" hidden></div>'+
     '<div class="row mt"><button class="btn wide" id="csvS">SETS CSV</button><button class="btn wide" id="csvW">WEIGHTS CSV</button></div></section>');
   dc.querySelector('#cfgSave').addEventListener('click',()=>{
