@@ -1,0 +1,40 @@
+/* ============================================================
+   BASE — minimal resets + element defaults.
+   Sets the warm-paper canvas and the body type. Components
+   bring their own styling via the design tokens.
+   ============================================================ */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button { cursor: pointer; font-family: inherit; }
+
+/* Tabular numerics helper, mono helper */
+.ha-mono { font-family: var(--font-mono); }
+.ha-tnum { font-variant-numeric: tabular-nums; }
+
+/* Tactical label: uppercase mono, wide tracking, muted */
+.ha-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

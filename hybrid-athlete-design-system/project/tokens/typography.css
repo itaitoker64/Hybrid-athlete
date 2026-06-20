@@ -1,0 +1,56 @@
+/* ============================================================
+   TYPOGRAPHY — HYBRID/ATHLETE
+   Three voices:
+   - DISPLAY  Source Serif 4  → empty states, big numerals, headlines
+   - BODY     Inter           → UI text, panel titles (uppercase), buttons
+   - MONO     JetBrains Mono  → all numerics, tactical labels, readouts
+   Tactical labels are UPPERCASE mono with wide tracking.
+   ============================================================ */
+:root {
+  /* ---- Families ---- */
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---- Weights ---- */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* ---- Type scale (px) ---- */
+  --text-3xs:  8px;   /* micro labels (tags, gauge labels) */
+  --text-2xs:  9px;   /* mono section labels */
+  --text-xs:   10px;  /* mono meta, nav-adjacent */
+  --text-sm:   11px;  /* mono readouts, captions */
+  --text-base: 13px;  /* dense body / notes */
+  --text-md:   15px;  /* exercise names, list emphasis */
+  --text-lg:   16px;  /* body default, inputs */
+  --text-xl:   21px;  /* brand wordmark */
+  --text-2xl:  26px;  /* big readouts, onboarding titles */
+  --text-3xl:  34px;  /* block id numerals */
+  --text-4xl:  42px;  /* HUD clock */
+  --text-5xl:  72px;  /* HIIT timer */
+
+  /* ---- Line heights ---- */
+  --leading-none:  1;
+  --leading-tight: 1.15;
+  --leading-snug:  1.25;
+  --leading-body:  1.5;
+
+  /* ---- Letter-spacing (tactical tracking) ---- */
+  --tracking-tight:  .01em;
+  --tracking-label:  .14em;  /* panel titles, day cards */
+  --tracking-wide:   .18em;  /* micro labels */
+  --tracking-wider:  .22em;  /* gauge labels, brand sub */
+  --tracking-widest: .34em;  /* HUD label, sub-headers */
+
+  /* ---- Semantic roles ---- */
+  --heading-font:    var(--font-body);   /* skin overrides serif → bold uppercase Inter */
+  --heading-weight:  var(--weight-bold);
+  --display-font:    var(--font-display);
+  --numeric-font:    var(--font-mono);
+}
+
+/* Utility: tabular numerics for any readout */
+.ha-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }

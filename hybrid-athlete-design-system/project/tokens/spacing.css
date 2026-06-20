@@ -1,0 +1,27 @@
+/* ============================================================
+   SPACING & LAYOUT — HYBRID/ATHLETE
+   Tight, mobile-first. App column is 680px max, padded 14px.
+   Component gaps live in the 8–14px range.
+   ============================================================ */
+:root {
+  /* ---- Spacing scale (px) ---- */
+  --space-1:  2px;
+  --space-2:  4px;
+  --space-3:  6px;
+  --space-4:  8px;
+  --space-5:  10px;
+  --space-6:  12px;
+  --space-7:  14px;   /* default panel padding + app gutter */
+  --space-8:  16px;
+  --space-9:  18px;
+  --space-10: 22px;
+  --space-12: 26px;
+
+  /* ---- Layout ---- */
+  --app-max:        680px;  /* main column cap */
+  --app-gutter:     14px;
+  --phone-width:    402px;  /* device-frame reference width */
+  --nav-height:     62px;   /* bottom tab bar */
+  --hit-min:        46px;   /* minimum tap target (buttons/inputs) */
+  --hit-min-sm:     40px;   /* compact chips */
+}
