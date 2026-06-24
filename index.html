@@ -304,6 +304,7 @@ input::placeholder{color:#B9B6AA}
 .day-card .dc-body{flex:1}
 .day-card .dc-body b{font-size:15px}
 .day-card .dc-body span{display:block;font-size:11px;color:var(--muted)}
+.day-card .dc-body .dc-note{margin-top:3px;font-size:11px;line-height:1.35;color:var(--fg);opacity:.78}
 .day-card .dc-pick{appearance:none;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:10px}
 .month-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
 .month-cal .mc-h{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;padding:2px 0}
@@ -977,6 +978,41 @@ async function requestMonthPlan(box){
     S.monthPlan={generated:today(),note:r.rationale||'',weeks:r.weeks.slice(0,4)};save();beep(660,.15);render();
   }catch(e){box.innerHTML='<div class="vision-result"><div class="vr-flag">PLANNER FAILED — '+uplinkMsg(e)+'</div></div>'}
 }
+/* ----- BUILT-IN PRESET: 8-WEEK RUN + STRENGTH INTEGRATION ----- */
+// Stacks hard stress on the same days so easy days stay truly easy. Running quality
+// always comes first in any shared session (lift after the run, or 6+ h apart).
+const RUN_STRENGTH_BLOCK={
+  note:'8-week run + strength integration — build → peak running → taper. Hard stress is stacked on the same days so easy days stay truly easy. Running quality comes first in any shared session (lift AFTER the run, or separate by 6+ h). Don\'t lift legs heavy the day before a quality run.',
+  // dow keys: 0=Sun … 6=Sat
+  week:{
+    1:{slot:'cond',note:'INTERVALS + LEGS — hard run, then lower-body strength. Both legs-heavy on one day so they recover together. Run first.'},
+    2:{slot:'endur',note:'Easy run (or rest if beat up).'},
+    3:{slot:'lift',note:'Upper body only — running rest day so legs recover.'},
+    4:{slot:'cond',note:'Tempo run + core / light accessory.'},
+    5:{slot:'rest',note:'Rest or easy cross-train + mobility. No leg day here.'},
+    6:{slot:'endur',note:'Long easy run (+ optional light full-body if you feel fresh).'},
+    0:{slot:'rest',note:'Rest.'}
+  },
+  weeks:[
+    {week:1,focus:'Build',intensity:'Strength normal · heavy-ish 3–5 reps (or usual hypertrophy)',emphasis:'Compound lower body (squat, deadlift, lunge, calf) + hip/posterior chain for running economy.'},
+    {week:2,focus:'Build',intensity:'Add load or reps · RPE 8',emphasis:'Progress the main lifts; keep every quality run sharp.'},
+    {week:3,focus:'Build',intensity:'Peak strength load · RPE 8–9',emphasis:'Hardest gym week of the build — legs must still feel recovered for Mon/Thu.'},
+    {week:4,focus:'Build',intensity:'Hold load · slight volume back-off',emphasis:'Consolidate strength before the running peak.'},
+    {week:5,focus:'Peak running',intensity:'Strength VOLUME −30% · keep the load',emphasis:'Protect recovery for the hard run weeks. Add plyometrics (box jumps, bounding).'},
+    {week:6,focus:'Peak running',intensity:'Strength VOLUME −30% · keep the load',emphasis:'Plyos for stride power & economy; runs always come first.'},
+    {week:7,focus:'Taper',intensity:'Strength → maintenance · one light full-body early week',emphasis:'Nothing heavy. Start sharpening for the time trial.'},
+    {week:8,focus:'Taper',intensity:'Maintenance · fresh',emphasis:'Drop heavy lifting — fresh legs win the time trial.'}
+  ]
+};
+function applyRunStrengthBlock(){
+  S.weekPlan=S.weekPlan||{};S.weekNotes=S.weekNotes||{};
+  for(const d in RUN_STRENGTH_BLOCK.week){S.weekPlan[d]=RUN_STRENGTH_BLOCK.week[d].slot;S.weekNotes[d]=RUN_STRENGTH_BLOCK.week[d].note;}
+  syncPlannedWk();
+  S.weekPlanNote=RUN_STRENGTH_BLOCK.note;
+  S.monthPlan={generated:today(),note:RUN_STRENGTH_BLOCK.note,weeks:RUN_STRENGTH_BLOCK.weeks.slice()};
+  S.cfg=S.cfg||{};S.cfg.days=5;
+  save();beep(660,.15);render();toast('RUN + STRENGTH 8-WEEK BLOCK APPLIED');
+}
 /* ----- PLAN: weekly schedule + monthly overview ----- */
 function viewPlan(){
   seedWeekPlan();
@@ -994,11 +1030,15 @@ function viewPlan(){
   const ai=el('<section class="panel panel-pad"><h2 class="panel-title">AI PLANNER</h2>'+
     '<p class="panel-note">Build your schedule from your goals & constraints. Today’s session is built on the MISSION tab; the week and month are built here.</p>'+
     '<div class="row mt"><button class="btn primary wide" id="aiWeek">AI · BUILD WEEK</button><button class="btn primary wide" id="aiMonth">AI · BUILD MONTH</button></div>'+
-    '<button class="btn wide mt" id="aiDay">BUILD TODAY’S SESSION →</button></section>');
+    '<button class="btn wide mt" id="aiDay">BUILD TODAY’S SESSION →</button>'+
+    '<div class="plan-preset"><p class="panel-note" style="margin-top:14px">Or load a ready-made block:</p>'+
+    '<button class="btn wide primary" id="presetRS">⚡ RUN + STRENGTH · 8-WEEK BLOCK</button>'+
+    '<p class="panel-note" style="margin-top:6px">Sets the 7-day split (intervals+legs Mon · upper Wed · tempo+core Thu · long run Sat) and loads the build → peak → taper strength progression. Overwrites your current week & month.</p></div></section>');
   ai.appendChild(aiBox);
   ai.querySelector('#aiWeek').addEventListener('click',()=>requestWeekPlan(aiBox));
   ai.querySelector('#aiMonth').addEventListener('click',()=>requestMonthPlan(aiBox));
   ai.querySelector('#aiDay').addEventListener('click',()=>{tab='mission';render();flashFind('#rGo,#bqGo')});
+  ai.querySelector('#presetRS').addEventListener('click',applyRunStrengthBlock);
   view.appendChild(ai);
 
   // ===== WEEKLY SCHEDULE (editable) =====
@@ -1018,14 +1058,18 @@ function viewPlan(){
     else if(isToday)status='<span style="color:var(--primary)">TODAY</span>';
     else if(isPast)status='<span style="color:var(--danger)">MISSED</span>';
     else status='<span style="color:var(--muted)">PLANNED</span>';
+    const note=(S.weekNotes&&S.weekNotes[dow])||'';
     const card=el('<div class="day-card'+(isToday?' today':'')+'">'+
       '<div class="dow">'+lab+'</div>'+
       '<div class="cat-dot" style="background:'+slot.color+'"></div>'+
-      '<div class="dc-body"><b>'+slot.label+'</b><span>'+ds.slice(5)+' · '+status+'</span></div>'+
+      '<div class="dc-body"><b>'+slot.label+'</b><span>'+ds.slice(5)+' · '+status+'</span>'+
+        (note?'<span class="dc-note">'+esc(note)+'</span>':'')+'</div>'+
       '<button class="dc-pick">CHANGE</button></div>');
     card.querySelector('.dc-pick').addEventListener('click',()=>{
       const idx=PLAN_SLOTS.findIndex(s=>s.k===planFor(dow));
-      S.weekPlan[dow]=PLAN_SLOTS[(idx+1)%PLAN_SLOTS.length].k;syncPlannedWk();buzz(20);render();
+      S.weekPlan[dow]=PLAN_SLOTS[(idx+1)%PLAN_SLOTS.length].k;
+      if(S.weekNotes)delete S.weekNotes[dow]; // clear preset note once edited by hand
+      syncPlannedWk();buzz(20);render();
     });
     wk.appendChild(card);
   });
