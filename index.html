@@ -304,7 +304,14 @@ input::placeholder{color:#B9B6AA}
 .day-card .dc-body{flex:1}
 .day-card .dc-body b{font-size:15px}
 .day-card .dc-body span{display:block;font-size:11px;color:var(--muted)}
-.day-card .dc-body .dc-note{margin-top:3px;font-size:11px;line-height:1.35;color:var(--fg);opacity:.78}
+.day-card .dc-body .dc-note,.day-card .dc-body .dc-what{margin-top:3px;font-size:11px;line-height:1.35;color:var(--fg);opacity:.78}
+.day-card.plan-day{display:block;padding:0}
+.day-card.plan-day>summary{display:flex;align-items:center;gap:12px;padding:12px 14px;list-style:none;cursor:pointer}
+.day-card.plan-day>summary::-webkit-details-marker{display:none}
+.day-card.plan-day>summary .fold-chev{margin-left:auto;flex:none;color:var(--muted);transition:transform .22s ease}
+.day-card.plan-day[open]>summary .fold-chev{transform:rotate(180deg)}
+.day-card.plan-day .dc-why{padding:2px 14px 13px 14px;font-size:12px;line-height:1.5;color:var(--fg);opacity:.9;border-top:1px dashed var(--border);margin-top:2px}
+.day-card.plan-day .dc-why b{color:var(--primary)}
 .day-card .dc-pick{appearance:none;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:10px}
 .month-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
 .month-cal .mc-h{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;padding:2px 0}
@@ -897,7 +904,7 @@ function showOnboarding(){
     else if(O.goals.includes('strength'))S.cfg.goals='Build maximal strength while staying lean and athletic.';
     else if(O.goals.includes('endurance'))S.cfg.goals='Improve endurance and conditioning across modalities.';
     S.profile=O.equip.includes('gym')?'base':'rooftop';
-    seedWeekPlan();
+    lockPlan(); // every athlete is on the locked run+strength block
     save();closeOnboarding();
     tab='mission';
     booted=true;renderNav();render();
@@ -978,77 +985,93 @@ async function requestMonthPlan(box){
     S.monthPlan={generated:today(),note:r.rationale||'',weeks:r.weeks.slice(0,4)};save();beep(660,.15);render();
   }catch(e){box.innerHTML='<div class="vision-result"><div class="vr-flag">PLANNER FAILED — '+uplinkMsg(e)+'</div></div>'}
 }
-/* ----- BUILT-IN PRESET: 8-WEEK RUN + STRENGTH INTEGRATION ----- */
-// Stacks hard stress on the same days so easy days stay truly easy. Running quality
-// always comes first in any shared session (lift after the run, or 6+ h apart).
+/* ----- THE PLAN: 8-WEEK RUN + STRENGTH INTEGRATION (LOCKED) -----
+   This is the only training plan. It can't be edited day-by-day — the structure is
+   fixed. The only thing the athlete changes is the EQUIPMENT (scan the gym on the
+   Mission tab); the coach then builds each strength session's sets from the machines
+   that gym actually has. Core rule: stack hard stress on the same days so easy days
+   stay truly easy. Running quality always comes first in a shared session. */
+const PLAN_BLOCK_START='2026-06-15'; // Monday of week 1 — anchors the block so "today" sits in week 2
 const RUN_STRENGTH_BLOCK={
-  note:'8-week run + strength integration — build → peak running → taper. Hard stress is stacked on the same days so easy days stay truly easy. Running quality comes first in any shared session (lift AFTER the run, or separate by 6+ h). Don\'t lift legs heavy the day before a quality run.',
-  // dow keys: 0=Sun … 6=Sat
+  note:'8-week run + strength integration — build → peak running → taper. Hard stress is stacked on the same days so easy days stay truly easy. Running quality comes first in any shared session (lift AFTER the run, or 6+ h apart).',
+  // dow keys: 0=Sun … 6=Sat. Each day = what we do + why.
   week:{
-    1:{slot:'cond',note:'INTERVALS + LEGS — hard run, then lower-body strength. Both legs-heavy on one day so they recover together. Run first.'},
-    2:{slot:'endur',note:'Easy run (or rest if beat up).'},
-    3:{slot:'lift',note:'Upper body only — running rest day so legs recover.'},
-    4:{slot:'cond',note:'Tempo run + core / light accessory.'},
-    5:{slot:'rest',note:'Rest or easy cross-train + mobility. No leg day here.'},
-    6:{slot:'endur',note:'Long easy run (+ optional light full-body if you feel fresh).'},
-    0:{slot:'rest',note:'Rest.'}
+    1:{slot:'cond',title:'Intervals + Legs',
+       what:'Hard interval run, then lower-body strength (squat / deadlift / lunge pattern). Run first; lift after, or 6+ h later.',
+       why:'Both legs-heavy efforts land on one day so they recover together — that keeps the rest of the week genuinely easy and means no quality run is ever done on trashed legs.'},
+    2:{slot:'endur',title:'Easy Run',
+       what:'Easy, conversational-pace run. Swap to full rest if you’re beat up.',
+       why:'Active recovery flushes the legs after Monday’s double without adding hard stress. Keeping easy days truly easy is what lets the hard days be hard.'},
+    3:{slot:'lift',title:'Upper Body',
+       what:'Upper-body strength only — push & pull. No legs.',
+       why:'It’s a running rest day, so the legs recover while you still train. Upper work adds zero fatigue to tomorrow’s tempo run.'},
+    4:{slot:'cond',title:'Tempo + Core',
+       what:'Tempo run (comfortably hard, sustained) plus core and light accessory work.',
+       why:'Your second quality run of the week. Legs need to be fresh — that’s exactly why Wednesday was upper-only and there’s no heavy leg day before today.'},
+    5:{slot:'rest',title:'Rest / Mobility',
+       what:'Rest, or easy cross-train + mobility. No leg day.',
+       why:'Protects tomorrow’s long run and next Monday’s intervals. A leg day here would wreck both.'},
+    6:{slot:'endur',title:'Long Easy Run',
+       what:'Long, easy-pace run. Optional light full-body lift only if you feel fresh.',
+       why:'Builds the aerobic base. Kept easy and placed right after a rest day so you can actually go long without digging a recovery hole.'},
+    0:{slot:'rest',title:'Rest',
+       what:'Full rest.',
+       why:'Recover and absorb the week’s work so Monday’s intervals are sharp.'}
   },
   weeks:[
-    {week:1,focus:'Build',intensity:'Strength normal · heavy-ish 3–5 reps (or usual hypertrophy)',emphasis:'Compound lower body (squat, deadlift, lunge, calf) + hip/posterior chain for running economy.'},
-    {week:2,focus:'Build',intensity:'Add load or reps · RPE 8',emphasis:'Progress the main lifts; keep every quality run sharp.'},
-    {week:3,focus:'Build',intensity:'Peak strength load · RPE 8–9',emphasis:'Hardest gym week of the build — legs must still feel recovered for Mon/Thu.'},
-    {week:4,focus:'Build',intensity:'Hold load · slight volume back-off',emphasis:'Consolidate strength before the running peak.'},
-    {week:5,focus:'Peak running',intensity:'Strength VOLUME −30% · keep the load',emphasis:'Protect recovery for the hard run weeks. Add plyometrics (box jumps, bounding).'},
-    {week:6,focus:'Peak running',intensity:'Strength VOLUME −30% · keep the load',emphasis:'Plyos for stride power & economy; runs always come first.'},
-    {week:7,focus:'Taper',intensity:'Strength → maintenance · one light full-body early week',emphasis:'Nothing heavy. Start sharpening for the time trial.'},
-    {week:8,focus:'Taper',intensity:'Maintenance · fresh',emphasis:'Drop heavy lifting — fresh legs win the time trial.'}
+    {week:1,phase:'Build',focus:'Build',intensity:'Strength normal · heavy-ish 3–5 reps (or usual hypertrophy)',emphasis:'Compound lower body (squat, deadlift, lunge, calf) + hip / posterior chain — these directly improve running economy.'},
+    {week:2,phase:'Build',focus:'Build',intensity:'Add load or reps · RPE 8',emphasis:'Progress the main lifts; keep every quality run sharp. Legs must feel recovered before Mon & Thu.'},
+    {week:3,phase:'Build',focus:'Build',intensity:'Peak strength load · RPE 8–9',emphasis:'Hardest gym week of the build — but if legs are trashed, the run is junk. Back off the lift before you sacrifice a run.'},
+    {week:4,phase:'Build',focus:'Build',intensity:'Hold load · slight volume back-off',emphasis:'Consolidate the strength you built before the running peak.'},
+    {week:5,phase:'Peak running',focus:'Peak running',intensity:'Strength VOLUME −30% · keep the load',emphasis:'Protect recovery for the hard run weeks. Add plyometrics (box jumps, bounding) — big payoff for stride power & economy.'},
+    {week:6,phase:'Peak running',focus:'Peak running',intensity:'Strength VOLUME −30% · keep the load',emphasis:'Keep plyos in; runs always come first. Strength is now maintaining, not building.'},
+    {week:7,phase:'Taper',focus:'Taper',intensity:'Strength → maintenance · one light full-body early in the week',emphasis:'Nothing heavy. Start sharpening — let fatigue drain out of the legs.'},
+    {week:8,phase:'Taper',focus:'Taper',intensity:'Maintenance · fresh',emphasis:'Drop heavy lifting entirely. Fresh legs win the time trial.'}
   ]
 };
-function applyRunStrengthBlock(){
-  S.weekPlan=S.weekPlan||{};S.weekNotes=S.weekNotes||{};
-  for(const d in RUN_STRENGTH_BLOCK.week){S.weekPlan[d]=RUN_STRENGTH_BLOCK.week[d].slot;S.weekNotes[d]=RUN_STRENGTH_BLOCK.week[d].note;}
+// Which week of the 8-week block are we in, by calendar (1–8, clamped).
+function planBlockWeek(){
+  const ms=new Date(today()+'T12:00')-new Date(PLAN_BLOCK_START+'T12:00');
+  return Math.min(8,Math.max(1,Math.floor(ms/864e5/7)+1));
+}
+function planWeekInfo(){return RUN_STRENGTH_BLOCK.weeks[planBlockWeek()-1];}
+// Force the locked plan into state. Idempotent — runs on boot and on every plan view.
+function lockPlan(){
+  S.weekPlan={};S.weekNotes={};
+  for(const d in RUN_STRENGTH_BLOCK.week){S.weekPlan[d]=RUN_STRENGTH_BLOCK.week[d].slot;S.weekNotes[d]=RUN_STRENGTH_BLOCK.week[d].title;}
   syncPlannedWk();
   S.weekPlanNote=RUN_STRENGTH_BLOCK.note;
   S.monthPlan={generated:today(),note:RUN_STRENGTH_BLOCK.note,weeks:RUN_STRENGTH_BLOCK.weeks.slice()};
   S.cfg=S.cfg||{};S.cfg.days=5;
-  save();beep(660,.15);render();toast('RUN + STRENGTH 8-WEEK BLOCK APPLIED');
+  S.startDate=PLAN_BLOCK_START;
 }
 /* ----- PLAN: weekly schedule + monthly overview ----- */
 function viewPlan(){
-  seedWeekPlan();
+  lockPlan(); // the 8-week run+strength block is the only plan
   const adh=adherence28();
-  view.appendChild(hero('TRAINING PLAN','YOUR WEEK','AI-built schedule + month overview. Tune any day by hand.','alt2',
-    [[String((S.cfg&&S.cfg.days)||4),'Days/wk'],[(adh!=null?adh+'%':'—'),'Adherence 28d'],[String(S.missions.length),'Sessions']]));
+  const bw=planBlockWeek();const wi=planWeekInfo();
+  view.appendChild(hero('TRAINING PLAN','RUN + STRENGTH','8-week integrated block — '+wi.phase+' phase. Fixed schedule; only the gym you scan changes the sets.','alt2',
+    [['W'+bw+' / 8','Block week'],[(adh!=null?adh+'%':'—'),'Adherence 28d'],[String(S.missions.length),'Sessions']]));
   const _ns=nextStepBanner();if(_ns)view.appendChild(_ns);
   const dayLbl=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const dowFor=i=>(i+1)%7; // Mon=0 -> getDay 1 ... Sun=6 -> getDay 0
   const mon=mondayOf(new Date());
   const tdy=today();
 
-  // ===== AI PLANNER =====
-  const aiBox=el('<div id="planAiBox"></div>');
-  const ai=el('<section class="panel panel-pad"><h2 class="panel-title">AI PLANNER</h2>'+
-    '<p class="panel-note">Build your schedule from your goals & constraints. Today’s session is built on the MISSION tab; the week and month are built here.</p>'+
-    '<div class="row mt"><button class="btn primary wide" id="aiWeek">AI · BUILD WEEK</button><button class="btn primary wide" id="aiMonth">AI · BUILD MONTH</button></div>'+
-    '<button class="btn wide mt" id="aiDay">BUILD TODAY’S SESSION →</button>'+
-    '<div class="plan-preset"><p class="panel-note" style="margin-top:14px">Or load a ready-made block:</p>'+
-    '<button class="btn wide primary" id="presetRS">⚡ RUN + STRENGTH · 8-WEEK BLOCK</button>'+
-    '<p class="panel-note" style="margin-top:6px">Sets the 7-day split (intervals+legs Mon · upper Wed · tempo+core Thu · long run Sat) and loads the build → peak → taper strength progression. Overwrites your current week & month.</p></div></section>');
-  ai.appendChild(aiBox);
-  ai.querySelector('#aiWeek').addEventListener('click',()=>requestWeekPlan(aiBox));
-  ai.querySelector('#aiMonth').addEventListener('click',()=>requestMonthPlan(aiBox));
-  ai.querySelector('#aiDay').addEventListener('click',()=>{tab='mission';render();flashFind('#rGo,#bqGo')});
-  ai.querySelector('#presetRS').addEventListener('click',applyRunStrengthBlock);
-  view.appendChild(ai);
+  // ===== THIS WEEK'S FOCUS (current phase, what + why) =====
+  view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">WEEK '+bw+' OF 8 — '+esc(wi.phase.toUpperCase())+'</h2>'+
+    '<p class="panel-note" style="margin-top:8px"><b>Strength this week:</b> '+esc(wi.intensity)+'</p>'+
+    '<p class="panel-note" style="margin-top:6px">'+esc(wi.emphasis)+'</p></section>'));
 
-  // ===== WEEKLY SCHEDULE (editable) =====
-  const wk=el('<section class="panel panel-pad"><h2 class="panel-title">WEEKLY PLAN</h2>'+
-    '<p class="panel-note">AI-built or tap CHANGE to cycle Rest → Strength → Conditioning → Endurance. It repeats every week.</p></section>');
+  // ===== LOCKED WEEKLY SPLIT (tap a day for the why) =====
+  const wk=el('<section class="panel panel-pad"><h2 class="panel-title">YOUR WEEK</h2>'+
+    '<p class="panel-note">Fixed 7-day split — running quality always comes first; lift after the run, or 6+ h apart. Tap any day to see why it’s built that way.</p></section>');
   let plannedWeek=0,doneWeek=0,volWeek=0;
   dayLbl.forEach((lab,i)=>{
     const dow=dowFor(i);
+    const day=RUN_STRENGTH_BLOCK.week[dow];
     const dt=new Date(mon);dt.setDate(mon.getDate()+i);const ds=liso(dt);
-    const slot=slotOf(planFor(dow));const isToday=ds===tdy;const isPast=ds<tdy;
+    const slot=slotOf(day.slot);const isToday=ds===tdy;const isPast=ds<tdy;
     const done=S.missions.includes(ds);
     if(slot.train){plannedWeek++;if(done)doneWeek++}
     volWeek+=dayVolume(ds);
@@ -1058,23 +1081,25 @@ function viewPlan(){
     else if(isToday)status='<span style="color:var(--primary)">TODAY</span>';
     else if(isPast)status='<span style="color:var(--danger)">MISSED</span>';
     else status='<span style="color:var(--muted)">PLANNED</span>';
-    const note=(S.weekNotes&&S.weekNotes[dow])||'';
-    const card=el('<div class="day-card'+(isToday?' today':'')+'">'+
-      '<div class="dow">'+lab+'</div>'+
-      '<div class="cat-dot" style="background:'+slot.color+'"></div>'+
-      '<div class="dc-body"><b>'+slot.label+'</b><span>'+ds.slice(5)+' · '+status+'</span>'+
-        (note?'<span class="dc-note">'+esc(note)+'</span>':'')+'</div>'+
-      '<button class="dc-pick">CHANGE</button></div>');
-    card.querySelector('.dc-pick').addEventListener('click',()=>{
-      const idx=PLAN_SLOTS.findIndex(s=>s.k===planFor(dow));
-      S.weekPlan[dow]=PLAN_SLOTS[(idx+1)%PLAN_SLOTS.length].k;
-      if(S.weekNotes)delete S.weekNotes[dow]; // clear preset note once edited by hand
-      syncPlannedWk();buzz(20);render();
-    });
+    const card=el('<details class="day-card plan-day'+(isToday?' today':'')+'"'+(isToday?' open':'')+'>'+
+      '<summary>'+
+        '<div class="dow">'+lab+'</div>'+
+        '<div class="cat-dot" style="background:'+slot.color+'"></div>'+
+        '<div class="dc-body"><b>'+esc(day.title)+'</b><span>'+slot.label+' · '+ds.slice(5)+' · '+status+'</span>'+
+          '<span class="dc-what">'+esc(day.what)+'</span></div>'+
+        CHEV+
+      '</summary>'+
+      '<div class="dc-why"><b>Why</b> — '+esc(day.why)+'</div></details>');
     wk.appendChild(card);
   });
-  if(S.weekPlanNote)wk.appendChild(el('<p class="api-note" style="margin-top:10px">COACH: '+esc(S.weekPlanNote)+'</p>'));
   view.appendChild(wk);
+
+  // ===== CHANGE THE SETS = SCAN YOUR GYM =====
+  const gx=el('<section class="panel panel-pad"><h2 class="panel-title">CHANGE THE SETS — SCAN YOUR GYM</h2>'+
+    '<p class="panel-note">The plan itself is fixed. To match the strength work to wherever you’re training today, scan that gym on the MISSION tab — the coach rebuilds each session’s sets from the machines it sees.</p>'+
+    '<button class="btn primary wide mt" id="goScan">SCAN MY GYM →</button></section>');
+  gx.querySelector('#goScan').addEventListener('click',()=>{tab='mission';render();flashFind('#scanBtn,#eqList')});
+  view.appendChild(gx);
 
   // ===== THIS WEEK OVERVIEW =====
   view.appendChild(el('<section class="panel panel-pad"><h2 class="panel-title">THIS WEEK</h2>'+
@@ -1111,20 +1136,18 @@ function viewPlan(){
     '<div><b class="num">'+(mVol/1000).toFixed(1)+' T</b><span>TONNAGE</span></div></div></section>');
   view.appendChild(monthSec);
 
-  // ===== MONTHLY PERIODIZATION (AI) =====
-  if(S.monthPlan&&S.monthPlan.weeks&&S.monthPlan.weeks.length){
-    const curPos=meso().pos;
-    const mp=el('<section class="panel panel-pad"><h2 class="panel-title">MONTHLY PLAN — 4-WEEK BLOCK</h2>'+
-      (S.monthPlan.note?'<p class="panel-note">'+esc(S.monthPlan.note)+'</p>':'')+'</section>');
-    S.monthPlan.weeks.forEach((w,i)=>{
-      const wkN=w.week||i+1;const isCur=wkN===curPos;
-      mp.appendChild(el('<div class="day-card'+(isCur?' today':'')+'">'+
-        '<div class="dow">W'+wkN+'</div>'+
-        '<div class="dc-body"><b>'+esc(w.focus||('Week '+wkN))+'</b><span>'+esc(w.intensity||'')+(w.emphasis?' · '+esc(w.emphasis):'')+'</span></div>'+
-        (isCur?'<span style="color:var(--primary);font-size:11px;font-weight:700">NOW</span>':'')+'</div>'));
-    });
-    view.appendChild(mp);
-  }
+  // ===== 8-WEEK BLOCK (build → peak → taper, current week highlighted) =====
+  const mp=el('<section class="panel panel-pad"><h2 class="panel-title">8-WEEK BLOCK</h2>'+
+    '<p class="panel-note">'+esc(RUN_STRENGTH_BLOCK.note)+'</p></section>');
+  RUN_STRENGTH_BLOCK.weeks.forEach(w=>{
+    const isCur=w.week===bw;
+    mp.appendChild(el('<div class="day-card'+(isCur?' today':'')+'">'+
+      '<div class="dow">W'+w.week+'</div>'+
+      '<div class="dc-body"><b>'+esc(w.phase)+'</b><span>'+esc(w.intensity)+'</span>'+
+        '<span class="dc-what">'+esc(w.emphasis)+'</span></div>'+
+      (isCur?'<span style="color:var(--primary);font-size:11px;font-weight:700">NOW</span>':'')+'</div>'));
+  });
+  view.appendChild(mp);
 
   const cta=el('<button class="btn wide primary mt">GO TO TODAY’S MISSION</button>');
   cta.addEventListener('click',()=>{tab='mission';render()});
@@ -1978,8 +2001,8 @@ function applyDefaults(){
   S.equipCatalog=S.equipCatalog||[];
   if(!S.gymEquip.base)S.gymEquip.base=GYM_DEFAULTS.base.equip.slice();
   if(!S.gymEquip.rooftop)S.gymEquip.rooftop=GYM_DEFAULTS.rooftop.equip.slice();
-  seedWeekPlan();
-  if(!S.startDate)S.startDate=S.weights.length?S.weights[0].date:today()}
+  lockPlan(); // the 8-week run+strength block is the only plan — enforce it every boot
+}
 async function bootApp(){booted=false;
   const loaded=await loadState();
   S=loaded?Object.assign(freshState(),loaded):freshState();
