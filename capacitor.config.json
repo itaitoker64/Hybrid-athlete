@@ -1,0 +1,11 @@
+{
+  "appId": "com.itaitoker.hybridathlete",
+  "appName": "HYBRID ATHLETE",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#FAF9F5"
+  }
+}

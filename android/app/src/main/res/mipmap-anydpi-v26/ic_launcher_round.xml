@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The background must be full-bleed across the whole 108dp canvas:
+         launchers scale and parallax the two layers independently, so an inset
+         background (what capacitor-assets emits) exposes transparent corners
+         mid-animation. A flat colour can never mis-scale. -->
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

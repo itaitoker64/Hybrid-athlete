@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mirrors the web palette. These are the colours shown before the WebView
+     has painted anything, so they must match or the launch flashes. -->
+<resources>
+    <color name="appBackground">#FAF9F5</color>
+    <color name="colorPrimary">#FAF9F5</color>
+    <color name="colorPrimaryDark">#FAF9F5</color>
+    <color name="colorAccent">#1A1A1A</color>
+</resources>

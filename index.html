@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#FAF9F5" />
 <link rel="manifest" href="manifest.webmanifest" />
+<script src="native-config.js"></script>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -674,6 +675,12 @@ function handleVoice(raw){const t=raw.toLowerCase().replace(/,/g,' ');
   if(tab==='mission')render()}
 
 /* ============ AI (global key via Vercel serverless proxy) ============ */
+// Where /api/ai lives. On the web that is this same origin, so a relative path
+// is correct. The Android build is served from https://localhost, which has no
+// /api route, so it has to reach the deployment by absolute URL — configured in
+// native-config.js. isNative() also gates the service worker below.
+function isNative(){return !!(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform())}
+const API_BASE=isNative()?(window.HA_API_BASE||''):'';
 function parseAI(text){const t=String(text).replace(/```json|```/g,'').trim();
   try{return JSON.parse(t)}catch(e){const m=t.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw e}}
 // Every user shares the deployment's GEMINI_API_KEY — the browser never sees it; requests go through /api/ai.
@@ -681,7 +688,7 @@ async function claudeMM(content){
   const parts=content.map(b=>b.type==='image'?{inline_data:{mime_type:b.source.media_type,data:b.source.data}}:{text:b.text});
   const body=JSON.stringify({contents:[{role:'user',parts}],
     generationConfig:{maxOutputTokens:4096,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}});
-  const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body});
+  const res=await fetch(API_BASE+'/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body});
   if(!res.ok){let detail='';try{detail=((await res.json())||{}).error||''}catch(e){}
     const err=new Error('API '+res.status+(detail?' '+detail:''));err.status=res.status;throw err}
   const data=await res.json();
@@ -1638,6 +1645,7 @@ function uplinkMsg(err){
   if(err&&err.status===429)return 'RATE LIMITED (429). Free-tier Gemini caps requests per minute — stand down 60 seconds and retry.';
   if(err&&err.status>=500)return 'AI API OVERLOADED ('+err.status+'). Not your fault — retry shortly.';
   if(err instanceof SyntaxError)return 'RESPONSE PARSE ERROR. Retry — the model returned malformed data.';
+  if(isNative()&&!API_BASE)return 'AI NOT CONFIGURED FOR THIS BUILD. Set HA_API_BASE in native-config.js to the deployment origin and rebuild — training, nutrition and timers work offline regardless.';
   return 'AI UNREACHABLE. The /api/ai route or GEMINI_API_KEY may not be deployed yet. Check signal and the Vercel deployment.';
 }
 function visionErr(box,err){box.innerHTML='<div class="vision-result"><div class="vr-flag">'+uplinkMsg(err)+'</div></div>'}
@@ -1967,7 +1975,35 @@ function stopHiit(){hiit.running=false;clearInterval(hiit.timer);hiit.phase='REA
 
 /* ============ NAV + BOOT ============ */
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;render()}));
-if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})})}
+// The service worker exists to make the *web* app installable and offline-capable.
+// In the Android build the assets already ship inside the APK, so registering it
+// would add a second, redundant cache — and sw.js is network-first for
+// navigations, so it would fire doomed requests at https://localhost on every
+// launch. Skip it natively.
+if('serviceWorker' in navigator&&!isNative()){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})})}
+
+/* ---------- native shell (Android) ---------- */
+// This page is served as plain HTML with no bundler, so the plugins are reached
+// through the bridge's global registry rather than by importing the npm packages
+// — a bare `import('@capacitor/app')` has nothing to resolve against here.
+if(isNative()){
+  const P=(window.Capacitor&&window.Capacitor.Plugins)||{};
+  // Light UI (#FAF9F5), so the status bar needs dark icons; the default is light
+  // icons, which are invisible against it.
+  if(P.StatusBar){
+    P.StatusBar.setStyle({style:'LIGHT'}).catch(()=>{});
+    P.StatusBar.setBackgroundColor({color:'#FAF9F5'}).catch(()=>{});
+  }
+  // A tab-switching single page with no history entries, so Android's back
+  // button would otherwise do nothing at all and read as a hang.
+  if(P.App){
+    P.App.addListener('backButton',()=>{
+      // Back leaves the current tab before it leaves the app.
+      if(tab!=='mission'){tab='mission';render();return}
+      P.App.exitApp();
+    });
+  }
+}
 function applyDefaults(){
   S.missionLog=S.missionLog||[];S.hiitLog=S.hiitLog||[];S.readiness=S.readiness||{};S.templates=S.templates||[];
   S.measures=S.measures||[];S.photos=S.photos||[];S.plannedWk=S.plannedWk||[];S.weekPlan=S.weekPlan||{};S.squadBoard=S.squadBoard||[];
